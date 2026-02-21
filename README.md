@@ -1,66 +1,57 @@
 # Multi-Tenant-SaaS-CRM-System
+# backend
 server/
 │
 ├── src/
-│   ├── app.js
-│   ├── server.js
+│   │
+│   ├── server.js               # Entry point
+│   ├── app.js                  # Express config
 │   │
 │   ├── config/
-│   │   ├── db.js
-│   │   ├── redis.js
-│   │   └── env.js
-│   │
-│   ├── models/
-│   │   ├── User.model.js
-│   │   ├── Organization.model.js
-│   │   ├── Lead.model.js
-│   │   ├── Customer.model.js
-│   │   ├── Task.model.js
-│   │   └── AuditLog.model.js
+│   │   ├── db.js               # MySQL pool connection
+│   │   └── env.js              # Environment loader
 │   │
 │   ├── routes/
 │   │   ├── auth.routes.js
-│   │   ├── org.routes.js
 │   │   ├── user.routes.js
 │   │   ├── lead.routes.js
-│   │   ├── customer.routes.js
-│   │   ├── task.routes.js
-│   │   └── analytics.routes.js
+│   │   └── customer.routes.js
 │   │
 │   ├── controllers/
 │   │   ├── auth.controller.js
-│   │   ├── org.controller.js
 │   │   ├── user.controller.js
 │   │   ├── lead.controller.js
-│   │   ├── customer.controller.js
-│   │   ├── task.controller.js
-│   │   └── analytics.controller.js
+│   │   └── customer.controller.js
 │   │
 │   ├── services/
 │   │   ├── auth.service.js
-│   │   ├── tenant.service.js
+│   │   ├── user.service.js
 │   │   ├── lead.service.js
-│   │   ├── analytics.service.js
-│   │   └── audit.service.js
+│   │   └── customer.service.js
 │   │
 │   ├── middlewares/
 │   │   ├── auth.middleware.js
-│   │   ├── tenant.middleware.js
 │   │   ├── rbac.middleware.js
-│   │   ├── rateLimit.middleware.js
-│   │   └── error.middleware.js
+│   │   ├── tenant.middleware.js
+│   │   ├── error.middleware.js
+│   │   └── rateLimit.middleware.js
+│   │
+│   ├── queries/                 # SQL query files (optional but clean)
+│   │   ├── user.queries.js
+│   │   ├── lead.queries.js
+│   │   └── customer.queries.js
 │   │
 │   ├── utils/
 │   │   ├── jwt.js
-│   │   ├── password.js
-│   │   ├── constants.js
-│   │   └── logger.js
+│   │   ├── hash.js
+│   │   ├── logger.js
+│   │   └── constants.js
 │   │
 │   └── validations/
 │       ├── auth.validation.js
-│       ├── lead.validation.js
-│       └── user.validation.js
+│       ├── user.validation.js
+│       └── lead.validation.js
 │
-├── Dockerfile
+├── .env
 ├── package.json
-└── .env
+└── nodemon.json
