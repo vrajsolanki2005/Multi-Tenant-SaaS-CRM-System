@@ -55,3 +55,58 @@ server/
 ├── .env
 ├── package.json
 └── nodemon.json
+
+# client
+client/
+│
+├── public/
+│
+├── src/
+│   │
+│   ├── api/
+│   │   ├── axios.js
+│   │   ├── auth.api.js
+│   │   ├── user.api.js
+│   │   └── lead.api.js
+│   │
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── Button.jsx
+│   │   │   ├── Input.jsx
+│   │   │   └── Modal.jsx
+│   │   │
+│   │   ├── layout/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   └── DashboardLayout.jsx
+│   │   │
+│   │   └── crm/
+│   │       ├── LeadCard.jsx
+│   │       └── LeadForm.jsx
+│   │
+│   ├── pages/
+│   │   ├── Login.jsx
+│   │   ├── RegisterOrg.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Leads.jsx
+│   │   ├── Customers.jsx
+│   │   └── Settings.jsx
+│   │
+│   ├── context/
+│   │   └── AuthContext.jsx
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.js
+│   │   └── useRole.js
+│   │
+│   ├── routes/
+│   │   └── ProtectedRoute.jsx
+│   │
+│   ├── utils/
+│   │   └── roleHelper.js
+│   │
+│   ├── App.jsx
+│   └── main.jsx
+│
+├── package.json
+└── vite.config.js (or CRA config)

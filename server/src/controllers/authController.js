@@ -1,13 +1,14 @@
-const authService = require('./services/authService');
+const authService = require('../services/authService');
 
+//create org
 exports.createOrg = async(req, res) =>{
     try{
         // /get data from req.body
-        const {name,adminName, email, password} = req.body;
+        const {name,adminName,email,password} = req.body;
 
         //check missing fields
         if(!name || !password || !email){
-            return res.status(400).json({err, message:"Missing Fields"})
+            return res.status(400).json({message:"Missing Fields"})
         }
 
         //call the services
@@ -19,8 +20,36 @@ exports.createOrg = async(req, res) =>{
     }
     catch(err){
         console.error("Error in  creating organization", err);
-        if (error.code === 'ER_DUP_ENTRY') {
+        if (err.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ success: false, message: "Organization or Email already exists" });
         }
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+//login
+exports.login = async(req, res) =>{
+    try{
+        //get data from req.body
+        const {email, password} = req.body;
+        //check missingig field
+        if(!email || !password){
+            return res.status(400).json({message:"Missing Fields"})
+        }
+
+        // call the service
+        const result = await authService.login(email, password);
+
+        return res.status(200).json(    
+        {
+            success:true,
+            message:"Login successful",
+            orgId : result.org_id,
+            userId : result.user_id,
+            token: result.token
+        })
+    }
+    catch(err){
+        console.error("Error in login", err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
