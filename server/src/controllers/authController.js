@@ -39,17 +39,24 @@ exports.login = async(req, res) =>{
         // call the service
         const result = await authService.login(email, password);
 
-        return res.status(200).json(    
-        {
-            success:true,
-            message:"Login successful",
-            orgId : result.org_id,
-            userId : result.user_id,
-            token: result.token
+        res.cookie('token', result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            orgId: result.org_id,
+            userId: result.user_id
         })
     }
     catch(err){
         console.error("Error in login", err);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        const statusCode = err.statusCode || 500;
+        const message = err.message || "Internal server error";
+        return res.status(statusCode).json({ success: false, message });
     }
 }
