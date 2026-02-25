@@ -59,7 +59,7 @@ exports.login = async (email, password) => {
         }
 
         const token = jwt.sign(
-            { userId: user.user_id, tenantId: user.tenant_id, user_role: user.user_role },
+            { user_id: user.user_id, tenant_id: user.tenant_id, user_role: user.user_role },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
