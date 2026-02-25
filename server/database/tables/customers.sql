@@ -9,6 +9,7 @@ CREATE TABLE customers (
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_email_per_tenant (tenant_id, email),
     FOREIGN KEY (tenant_id) REFERENCES org(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL
 )
