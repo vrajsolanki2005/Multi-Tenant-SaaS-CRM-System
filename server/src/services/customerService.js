@@ -23,9 +23,9 @@ exports.createCustomer = async (tenant_id, created_by, data)=>{
 exports.getCustomers = async (tenant_id, limit, offset)=>{
     const conn = await db.getConnection();
     try{
-        const [result] = await conn.execute(
-            'SELECT * FROM customers WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
-            [tenant_id, limit, offset]
+        const [result] = await conn.query(
+            `SELECT * FROM customers WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
+            [tenant_id]
         );
         return result;
     }

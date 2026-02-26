@@ -36,6 +36,7 @@ exports.createCustomer = async(req, res) =>{
 
 exports.getCustomers = async(req, res) =>{
     try{
+        console.log('req.user:', req.user);
         const tenant_id = req.user.tenant_id;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -46,7 +47,7 @@ exports.getCustomers = async(req, res) =>{
     }
     catch(err){
         console.error("Error in fetching customers", err);
-        return res.status(500).json({message: "Internal server error"});
+        return res.status(500).json({message: "Internal server error", error: err.message});
     }
 }
 
