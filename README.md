@@ -1,112 +1,62 @@
-# Multi-Tenant-SaaS-CRM-System
-# backend
-server/
-│
-├── src/
-│   │
-│   ├── server.js               # Entry point
-│   ├── app.js                  # Express config
-│   │
-│   ├── config/
-│   │   ├── db.js               # MySQL pool connection
-│   │   └── env.js              # Environment loader
-│   │
-│   ├── routes/
-│   │   ├── auth.routes.js
-│   │   ├── user.routes.js
-│   │   ├── lead.routes.js
-│   │   └── customer.routes.js
-│   │
-│   ├── controllers/
-│   │   ├── auth.controller.js
-│   │   ├── user.controller.js
-│   │   ├── lead.controller.js
-│   │   └── customer.controller.js
-│   │
-│   ├── services/
-│   │   ├── auth.service.js
-│   │   ├── user.service.js
-│   │   ├── lead.service.js
-│   │   └── customer.service.js
-│   │
-│   ├── middlewares/
-│   │   ├── auth.middleware.js
-│   │   ├── rbac.middleware.js
-│   │   ├── tenant.middleware.js
-│   │   ├── error.middleware.js
-│   │   └── rateLimit.middleware.js
-│   │
-│   ├── queries/                 # SQL query files (optional but clean)
-│   │   ├── user.queries.js
-│   │   ├── lead.queries.js
-│   │   └── customer.queries.js
-│   │
-│   ├── utils/
-│   │   ├── jwt.js
-│   │   ├── hash.js
-│   │   ├── logger.js
-│   │   └── constants.js
-│   │
-│   └── validations/
-│       ├── auth.validation.js
-│       ├── user.validation.js
-│       └── lead.validation.js
-│
-├── .env
-├── package.json
-└── nodemon.json
+# Multi-Tenant SaaS CRM System
 
-# client
-client/
-│
-├── public/
-│
+A production-ready multi-tenant CRM system built with Node.js, Express, and PostgreSQL.
+
+## Week 1 Progress ✅
+
+- ✅ **Real Relational Database** - PostgreSQL with proper schema design
+- ✅ **Multi-Tenant Base** - Tenant isolation with tenant_id in all tables
+- ✅ **JWT Authentication** - Secure token-based auth system
+- ✅ **Role-Based Protection** - Middleware for role-based access control
+- ✅ **Proper Backend Structure** - MVC architecture with clean separation
+- ✅ **Clean SQL Usage** - Parameterized queries and proper database patterns
+
+## Tech Stack
+
+- **Backend**: Node.js, Express.js
+- **Database**: PostgreSQL
+- **Authentication**: JWT (JSON Web Tokens)
+- **Architecture**: MVC Pattern
+
+## Project Structure
+
+```
+server/
+├── database/          # SQL schemas and migrations
 ├── src/
-│   │
-│   ├── api/
-│   │   ├── axios.js
-│   │   ├── auth.api.js
-│   │   ├── user.api.js
-│   │   └── lead.api.js
-│   │
-│   ├── components/
-│   │   ├── common/
-│   │   │   ├── Button.jsx
-│   │   │   ├── Input.jsx
-│   │   │   └── Modal.jsx
-│   │   │
-│   │   ├── layout/
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── DashboardLayout.jsx
-│   │   │
-│   │   └── crm/
-│   │       ├── LeadCard.jsx
-│   │       └── LeadForm.jsx
-│   │
-│   ├── pages/
-│   │   ├── Login.jsx
-│   │   ├── RegisterOrg.jsx
-│   │   ├── Dashboard.jsx
-│   │   ├── Leads.jsx
-│   │   ├── Customers.jsx
-│   │   └── Settings.jsx
-│   │
-│   ├── context/
-│   │   └── AuthContext.jsx
-│   │
-│   ├── hooks/
-│   │   ├── useAuth.js
-│   │   └── useRole.js
-│   │
-│   ├── routes/
-│   │   └── ProtectedRoute.jsx
-│   │
-│   ├── utils/
-│   │   └── roleHelper.js
-│   │
-│   ├── App.jsx
-│   └── main.jsx
-│
-├── package.json
-└── vite.config.js (or CRA config)
+│   ├── config/       # Database and app configuration
+│   ├── controllers/  # Request handlers
+│   ├── middlewares/  # Auth and validation middleware
+│   ├── routes/       # API routes
+│   ├── services/     # Business logic
+│   └── app.js        # Express app setup
+```
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+cd server
+npm install
+```
+
+2. Set up environment variables in `server/.env`
+
+3. Initialize database:
+```bash
+psql -U postgres -f database/create_db.sql
+```
+
+4. Start server:
+```bash
+npm start
+```
+
+## Features
+
+- Multi-tenant data isolation
+- JWT-based authentication
+- Role-based access control (Admin, Manager, User)
+- RESTful API design
+- Secure password hashing
+- Token verification middleware
