@@ -4,7 +4,7 @@ A production-ready multi-tenant CRM system built with Node.js, Express, and Post
 
 ## Week 1 Progress ✅
 
-- ✅ **Real Relational Database** - PostgreSQL with proper schema design
+- ✅ **Real Relational Database** - MYSQL with proper schema design
 - ✅ **Multi-Tenant Base** - Tenant isolation with tenant_id in all tables
 - ✅ **JWT Authentication** - Secure token-based auth system
 - ✅ **Role-Based Protection** - Middleware for role-based access control
@@ -14,7 +14,7 @@ A production-ready multi-tenant CRM system built with Node.js, Express, and Post
 ## Tech Stack
 
 - **Backend**: Node.js, Express.js
-- **Database**: PostgreSQL
+- **Database**: MYSQL
 - **Authentication**: JWT (JSON Web Tokens)
 - **Architecture**: MVC Pattern
 
