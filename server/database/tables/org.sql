@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS org(
 
     UNIQUE KEY unique_org_name (name)
 );
+
+ALTER TABLE leads CHANGE leads_id lead_id INT AUTO_INCREMENT;
