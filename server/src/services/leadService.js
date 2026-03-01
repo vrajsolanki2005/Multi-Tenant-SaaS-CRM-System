@@ -1,99 +1,121 @@
-const db = require('../config/db')
+const db = require('../config/db');
 
-exports.createLead = async (data) => {
+exports.createLead = async (tenant_id, created_by, data) => {
     const conn = await db.getConnection();
-    try{
+    try {
         await conn.beginTransaction();
         const [result] = await conn.execute(
-            `INSERT INTO leads (title, status, value, customer_id, tenant_id, assigned_to) VALUES (?, ?, ?, ?, ?, ?)`,
-            [data.title, 'new', data.value, data.customer_id, data.tenant_id, data.assigned_to]
+            'INSERT INTO leads (tenant_id, title, status, value, customer_id, assigned_to) VALUES (?,?,?,?,?,?)',
+            [tenant_id, data.title, data.status || 'new', data.value, data.customer_id, created_by]
         );
         await conn.commit();
-        return result.insertId;
-    }
-    catch(err){
+        return { lead_id: result.insertId, ...data };
+    } catch (err) {
         await conn.rollback();
         throw err;
-    }
-    finally{
+    } finally {
         conn.release();
     }
-}
-exports.getLeads = async (tenant_id)=>{
-    const conn = await db.getConnection();
-    try{
-        const [result] = await conn.execute(
-            'SELECT * FROM leads WHERE tenant_id = ? ORDER BY created_at DESC',
-            [tenant_id]
-        );
-        return result;
-    }
-    catch(err){
-        throw err;
-    }
-    finally{
-        conn.release();
-    }
-}
+};
 
-exports.getLeadById = async (lead_id) =>{
+exports.getLeads = async (tenant_id, filters) => {
     const conn = await db.getConnection();
-    try{
-        const [result] = await conn.execute(
-            'SELECT * FROM leads WHERE lead_id = ?',
-            [lead_id]
-        );
-        return result[0];
-    }
-    catch(err){
-        throw err;
-    }
-    finally{
-        conn.release();
-    }
-}
-
-exports.updateLeadStatus = async (lead_id, tenant_id, status)=>{
-    const conn = await db.getConnection();
-    try{
-        await conn.beginTransaction();
-        const [result] = await conn.execute(
-            'UPDATE leads SET status = ? WHERE lead_id = ? AND tenant_id = ?',
-            [status, lead_id, tenant_id]
-        );
-        await conn.commit();
-        return result.affectedRows > 0;
-    }
-    catch(err){
-        await conn.rollback();
-        throw err;
-    }
-    finally{
-        conn.release();
-    }
-}
-
-exports.deleteLead = async (lead_id, tenant_id)=>{
-    const conn = await db.getConnection();
-    try{
-        await conn.beginTransaction();
-        const [result] = await conn.execute(
-            'DELETE FROM leads WHERE lead_id = ? AND tenant_id = ?',
-            [lead_id, tenant_id]
-        );
-        await conn.commit();
+    try {
+        const { page = 1, limit = 10, status } = filters;
+        const offset = (page - 1) * limit;
         
-        if(result.affectedRows === 0){
-            return null;
+        let query = 'SELECT * FROM leads WHERE tenant_id = ?';
+        const params = [tenant_id];
+        
+        if (status) {
+            query += ' AND status = ?';
+            params.push(status);
         }
         
-        return true;
-    }
-    catch(err){
-        await conn.rollback();
+        query += ` ORDER BY created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
+        
+        const [result] = await conn.query(query, params);
+        return result;
+    } catch (err) {
         throw err;
-    }
-    finally{
+    } finally {
         conn.release();
     }
-}
+};
+
+exports.getLeadById = async (tenant_id, lead_id) => {
+    const conn = await db.getConnection();
+    try {
+        const [result] = await conn.execute(
+            'SELECT * FROM leads WHERE tenant_id = ? AND lead_id = ?',
+            [tenant_id, lead_id]
+        );
+        return result.length > 0 ? result[0] : null;
+    } catch (err) {
+        throw err;
+    } finally {
+        conn.release();
+    }
+};
+
+exports.updateLead = async (tenant_id, lead_id, data) => {
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+        
+        const updates = [];
+        const values = [];
+        
+        if (data.title) {
+            updates.push('title = ?');
+            values.push(data.title);
+        }
+        if (data.status) {
+            updates.push('status = ?');
+            values.push(data.status);
+        }
+        if (data.value !== undefined) {
+            updates.push('value = ?');
+            values.push(data.value);
+        }
+        if (data.customer_id !== undefined) {
+            updates.push('customer_id = ?');
+            values.push(data.customer_id);
+        }
+        
+        if (updates.length === 0) return null;
+        
+        values.push(tenant_id, lead_id);
+        
+        const [result] = await conn.execute(
+            `UPDATE leads SET ${updates.join(', ')} WHERE tenant_id = ? AND lead_id = ?`,
+            values
+        );
+        
+        await conn.commit();
+        return result.affectedRows === 0 ? null : { lead_id, ...data };
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    } finally {
+        conn.release();
+    }
+};
+
+exports.deleteLead = async (tenant_id, lead_id) => {
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+        const [result] = await conn.execute(
+            'DELETE FROM leads WHERE tenant_id = ? AND lead_id = ?',
+            [tenant_id, lead_id]
+        );
+        await conn.commit();
+        return result.affectedRows === 0 ? null : true;
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    } finally {
+        conn.release();
+    }
+};

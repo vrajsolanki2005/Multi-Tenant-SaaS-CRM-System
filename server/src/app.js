@@ -6,7 +6,7 @@ const app = express();
 const authRoutes = require('./routes/auth.routes');
 const testRoutes = require('./routes/test.routes');
 const customerRoutes = require('./routes/customers.routes');
-const leadRoutes = require('./routes/lead.routes');
+const leadRoutes = require('./routes/leads.routes');
 
 // Middleware
 app.use(cors({
