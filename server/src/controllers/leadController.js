@@ -1,5 +1,6 @@
 const leadService = require('../services/leadService');
-const userService = require('../services/userService')
+const userService = require('../services/userService');
+const { logAction } = require('../services/auditService');
 
 const STATUS_FLOW = {
     'new': ['contacted', 'closed'],
@@ -21,6 +22,7 @@ exports.createLead = async (req, res) => {
         const created_by = req.user.user_id;
 
         const result = await leadService.createLead(tenant_id, created_by, { title, status, value, customer_id });
+        await logAction('Lead created', 'lead', result.lead_id, created_by, tenant_id);
         return res.status(201).json({ message: "Lead created", leadId: result.lead_id, lead: result });
     } catch (err) {
         console.error("Error in creating lead", err);
@@ -89,6 +91,7 @@ exports.updateLead = async (req, res) => {
             return res.status(404).json({ message: "Lead not found" });
         }
         
+        await logAction('Lead updated', 'lead', lead_id, req.user.user_id, tenant_id);
         return res.status(200).json({ message: "Lead updated", lead: result });
     } catch (err) {
         console.error("Error in updating lead", err);
@@ -127,6 +130,7 @@ exports.assignLead = async (req, res) => {
         if(!targetUser) return res.status(404).json({success:false, message:"Target user does not exist in your organizations"})
 
         await leadService.assignLead(id, tenant_id, targetUserId);
+        await logAction('Lead assigned', 'lead', id, req.user.user_id, tenant_id);
         res.json({
             success:true, message:`Lead assigned successfully to ${targetUser.user_name}`
         }) 

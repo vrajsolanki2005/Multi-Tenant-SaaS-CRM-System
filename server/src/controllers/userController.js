@@ -1,4 +1,5 @@
 const userService = require('../services/userService');
+const { logAction } = require('../services/auditService');
 
 exports.createUser = async (req, res) => {
     try {
@@ -6,6 +7,7 @@ exports.createUser = async (req, res) => {
         const tenant_id = req.user.tenant_id;
     
         const id = await userService.createUser(tenant_id, { user_name, user_email, user_password, user_role });
+        await logAction('User created', 'user', id, req.user.user_id, tenant_id);
         return res.status(201).json({ 
             success: true, 
             message: "User created successfully", 
@@ -60,6 +62,7 @@ exports.updateUser = async (req, res) => {
         if (!updatedUser) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+        await logAction('User updated', 'user', user_id, req.user.user_id, tenant_id);
         return res.status(200).json({ 
             success: true, 
             message: "User updated successfully", 
@@ -87,6 +90,7 @@ exports.deleteUser = async (req, res) => {
         if (!deleted) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+        await logAction('User deleted', 'user', user_id, req.user.user_id, tenant_id);
         return res.status(200).json({ success: true, message: "User deleted successfully" });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to delete user" });

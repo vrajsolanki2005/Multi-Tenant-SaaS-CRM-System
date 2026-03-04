@@ -1,4 +1,5 @@
 const taskService = require('../services/taskService');
+const { logAction } = require('../services/auditService');
 
 exports.createTask = async (req, res) => {
     try {
@@ -12,6 +13,11 @@ exports.createTask = async (req, res) => {
         const task_id = await taskService.createTask(tenant_id, { 
             task_name, description, status, priority, due_date, lead_id, assigned_to 
         });
+        
+        await logAction('Task created', 'task', task_id, req.user.user_id, tenant_id);
+        if (assigned_to) {
+            await logAction('Task assigned', 'task', task_id, req.user.user_id, tenant_id);
+        }
         
         return res.status(201).json({
             message: 'Task created successfully',
@@ -75,6 +81,7 @@ exports.updateTask = async (req, res) => {
             return res.status(404).json({ message: "Task not found or access denied" });
         }
         
+        await logAction('Task updated', 'task', task_id, req.user.user_id, tenant_id);
         return res.status(200).json({ message: "Task updated successfully" });
     } catch (err) {
         console.error("Error updating task:", err);

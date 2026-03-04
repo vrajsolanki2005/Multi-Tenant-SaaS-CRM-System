@@ -9,6 +9,7 @@ const testRoutes = require('./routes/test.routes');
 const customerRoutes = require('./routes/customers.routes');
 const leadRoutes = require('./routes/leads.routes');
 const taskRoutes = require('./routes/tasks.routes');
+const auditRoutes = require('./routes/audit.routes');
 
 // Middleware
 app.use(cors({
@@ -27,6 +28,7 @@ app.use('/api/test', testRoutes)
 app.use('/api', customerRoutes)
 app.use('/api', leadRoutes)
 app.use('/api', taskRoutes)
+app.use('/api/audit-logs', auditRoutes)
 
 // Health check route
 app.get('/api/health', (req, res) => {
