@@ -1,3 +1,4 @@
+USE saas_crm;
 CREATE TABLE audit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     action VARCHAR(255) NOT NULL,
@@ -10,5 +11,5 @@ CREATE TABLE audit_logs (
     INDEX idx_user (user_id),
     INDEX idx_created_at (created_at),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (tenant_id) REFERENCES tenants(tenant_id) ON DELETE CASCADE
+    FOREIGN KEY (tenant_id) REFERENCES org(id) ON DELETE CASCADE
 );
