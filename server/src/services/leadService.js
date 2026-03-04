@@ -119,3 +119,28 @@ exports.deleteLead = async (tenant_id, lead_id) => {
         conn.release();
     }
 };
+
+exports.assignLead = async (lead_id, tenant_id, user_id) => {
+    await db.execute(
+        'UPDATE leads SET assigned_to = ? WHERE id = ? AND tenant_id = ?',
+        [user_id, lead_id, tenant_id]
+    )
+}
+
+exports.updateAssignment = async (lead_id, tenant_id, user_id) => {
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+        const [result] = await conn.execute(
+            'UPDATE leads SET assigned_to = ? WHERE lead_id = ? AND tenant_id = ?',
+            [user_id, lead_id, tenant_id]
+        );
+        await conn.commit();
+        return result.affectedRows > 0;
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    } finally {
+        conn.release();
+    }
+};

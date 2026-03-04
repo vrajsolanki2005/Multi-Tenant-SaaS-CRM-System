@@ -24,3 +24,6 @@ CREATE TABLE users (
     
     INDEX idx_users_tenant (tenant_id)
 );
+
+
+ALTER TABLE users MODIFY user_role ENUM('superAdmin', 'admin', 'manager', 'sales') DEFAULT 'sales';

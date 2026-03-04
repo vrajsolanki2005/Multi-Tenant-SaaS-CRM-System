@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const app = express();
 const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes')
 const testRoutes = require('./routes/test.routes');
 const customerRoutes = require('./routes/customers.routes');
 const leadRoutes = require('./routes/leads.routes');
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes)
+app.use('/api/auth', userRoutes)
 app.use('/api/test', testRoutes)
 app.use('/api', customerRoutes)
 app.use('/api', leadRoutes)

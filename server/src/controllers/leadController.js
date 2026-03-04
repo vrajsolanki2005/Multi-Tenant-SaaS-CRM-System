@@ -1,4 +1,5 @@
 const leadService = require('../services/leadService');
+const userService = require('../services/userService')
 
 const STATUS_FLOW = {
     'new': ['contacted', 'closed'],
@@ -112,3 +113,25 @@ exports.deleteLead = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
+exports.assignLead = async (req, res) => {
+    try{
+        const id = req.params.id;
+        const {user_id:targetUserId} = req.body;
+        const tenant_id= req.tenant_id;
+
+        const lead = await leadService.getLeadById(id, tenant_id);
+        if(!lead) return res.status(404).json({message:"Lead not found"});
+
+        const targetUser=await userService.getUserById(targetUserId, tenant_id);
+        if(!targetUser) return res.status(404).json({success:false, message:"Target user does not exist in your organizations"})
+
+        await leadService.assignLead(id, tenant_id, targetUserId);
+        res.json({
+            success:true, message:`Lead assigned successfully to ${targetUser.user_name}`
+        }) 
+    }
+    catch(err){
+        res.status(500).json({success:false, message:err.message})
+    }
+}
