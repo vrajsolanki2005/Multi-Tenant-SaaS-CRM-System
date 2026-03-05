@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes)
-app.use('/api/auth', userRoutes)
+app.use('/api/', userRoutes)
 app.use('/api/test', testRoutes)
 app.use('/api', customerRoutes)
 app.use('/api', leadRoutes)
