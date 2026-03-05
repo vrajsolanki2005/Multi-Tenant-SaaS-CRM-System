@@ -1,5 +1,4 @@
-// Optional: Install express-rate-limit
-// npm install express-rate-limit
+
 
 const rateLimit = require('express-rate-limit');
 
@@ -37,6 +36,4 @@ exports.authLimiter = rateLimit({
     skipSuccessfulRequests: true,
 });
 
-// Usage in routes:
-// const { apiLimiter, createUserLimiter } = require('../middlewares/rateLimiter');
-// router.post('/create-user', createUserLimiter, authMiddleware, ...);
+
