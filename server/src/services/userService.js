@@ -35,7 +35,9 @@ exports.createUser = async (tenant_id, userData) => {
 }
 exports.getAllUsers = async (tenant_id, filters = {}) => {
     const { page = 1, limit = 10, search, role, is_active } = filters;
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
     
     let query = 'SELECT user_id, user_name, user_email, user_role, is_active, created_at FROM users WHERE tenant_id = ?';
     const params = [tenant_id];
@@ -59,18 +61,17 @@ exports.getAllUsers = async (tenant_id, filters = {}) => {
     const [countResult] = await db.execute(countQuery, params);
     const total = countResult[0].total;
     
-    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    query += ` ORDER BY created_at DESC LIMIT ${limitNum} OFFSET ${offset}`;
     
     const [users] = await db.execute(query, params);
     
     return {
         users,
         pagination: {
-            page,
-            limit,
+            page: pageNum,
+            limit: limitNum,
             total,
-            totalPages: Math.ceil(total / limit)
+            totalPages: Math.ceil(total / limitNum)
         }
     };
 }
