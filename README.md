@@ -12,6 +12,15 @@ A production-ready multi-tenant CRM system built with Node.js, Express, and MySQ
 - ✅ **Clean SQL Usage** - Parameterized queries and proper database patterns
 - ✅ **Industry-Level User API** - Validation, pagination, filtering, security
 
+## 🗓️ WEEK-2 PLAN (CORE MULTI-TENANT LOGIC)
+
+✅ Customers table
+✅ Leads table
+✅ Tenant-based filtering
+✅ CRUD APIs
+✅ Pagination
+✅ Basic validation
+
 ## Tech Stack
 
 - **Backend**: Node.js, Express.js
