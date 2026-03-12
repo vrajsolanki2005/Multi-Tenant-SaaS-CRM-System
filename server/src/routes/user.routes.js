@@ -5,6 +5,7 @@ const { createUserValidation, updateUserValidation, userIdValidation, pagination
 const userController = require('../controllers/userController');
 const router = express.Router();
 
+router.get('/me', authMiddleware, userController.getMyProfile);
 router.post('/create-user', authMiddleware, allowRoles('admin', 'manager'), createUserValidation, validate, userController.createUser);
 router.get('/users', authMiddleware, paginationValidation, validate, userController.getAllUsers);
 router.get('/users/:id', authMiddleware, userIdValidation, validate, userController.getUserById);

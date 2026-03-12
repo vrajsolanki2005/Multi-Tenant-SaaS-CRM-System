@@ -9,7 +9,9 @@ const getAuditLogs = async (tenant_id, filters = {}) => {
     const { page = 1, limit = 50, entity, user_id, start_date, end_date } = filters;
     const offset = (page - 1) * limit;
     
-    let query = `SELECT al.*, u.user_name, u.user_email 
+    let query = `SELECT al.id as log_id, al.action, al.entity, al.entity_id, 
+                 al.user_id as performed_by, al.created_at, 
+                 u.user_name, u.user_email 
                  FROM audit_logs al 
                  LEFT JOIN users u ON al.user_id = u.user_id 
                  WHERE al.tenant_id = ?`;

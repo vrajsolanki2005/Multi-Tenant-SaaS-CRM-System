@@ -43,11 +43,20 @@ exports.getCustomers = async(req, res) =>{
         const offset = (page - 1) * limit;
         
         const result = await customerService.getCustomers(tenant_id, limit, offset);
-        return res.status(200).json(result);
+        
+        // Return with proper structure
+        return res.status(200).json({
+            customers: result,
+            pagination: {
+                page,
+                limit,
+                total: result.length
+            }
+        });
     }
     catch(err){
         console.error("Error in fetching customers", err);
-        return res.status(500).json({message: "Internal server error", error: err.message});
+        return res.status(500).json({message: "Database error: " + err.message});
     }
 }
 

@@ -5,6 +5,8 @@ export const getUsers = (params?: Record<string, any>) =>
 
 export const getUserById = (id: number) => api.get(`/users/${id}`);
 
+export const getMyProfile = () => api.get('/me');
+
 export const createUser = (data: {
   user_name: string; user_email: string; user_password: string; user_role: string;
 }) => api.post('/create-user', data);

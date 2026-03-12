@@ -41,7 +41,7 @@ exports.getTasks = async (req, res) => {
         return res.status(200).json({ tasks });
     } catch (err) {
         console.error("Error fetching tasks:", err);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Database error: " + err.message });
     }
 };
 

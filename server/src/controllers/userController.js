@@ -1,6 +1,21 @@
 const userService = require("../services/userService");
 const { logAction } = require("../services/auditService");
 
+exports.getMyProfile = async (req, res) => {
+  try {
+    const tenant_id = req.user.tenant_id;
+    const user_id = req.user.user_id;
+    const user = await userService.getUserById(tenant_id, user_id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Failed to fetch profile" });
+  }
+};
+
 exports.createUser = async (req, res) => {
   try {
     const { user_name, user_email, user_password, user_role } = req.body;

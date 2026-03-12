@@ -4,15 +4,22 @@ const authService = require('../services/authService');
 exports.createOrg = async(req, res) =>{
     try{
         // /get data from req.body
-        const {name,adminName,email,password} = req.body;
+        const {name, adminName, email, password} = req.body;
 
         //check missing fields
         if(!name || !password || !email){
             return res.status(400).json({message:"Missing Fields"})
         }
 
+        // Use adminName if provided, otherwise extract from email
+        const finalAdminName = adminName || email.split('@')[0]
+            .replace(/[._]/g, ' ')
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+
         //call the services
-        const result = await authService.createOrg(name, adminName, email, password);
+        const result = await authService.createOrg(name, finalAdminName, email, password);
         return res.status(201).json({message:"Organization created successfully", 
             orgId : result.id, 
             userId : result.user_id

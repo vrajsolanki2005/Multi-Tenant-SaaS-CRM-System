@@ -80,10 +80,19 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('Dashboard: User object:', user);
+  console.log('Dashboard: User name:', user?.name);
+  console.log('Dashboard: User email:', user?.email);
+
   useEffect(() => {
     getDashboardStats()
       .then(res => { setData(res.data); setLoading(false); })
-      .catch(err => { console.error(err); setError("Backend synchronization failed."); setLoading(false); });
+      .catch(err => { 
+        console.error('Dashboard error:', err); 
+        const msg = err.response?.data?.message || err.message || "Backend synchronization failed. Ensure server is running on port 3000.";
+        setError(msg); 
+        setLoading(false); 
+      });
   }, []);
 
   const stats = data?.counts || { leads: 0, customers: 0, openTasks: 0, completedTasks: 0, users: 0 };
@@ -107,7 +116,7 @@ export default function DashboardPage() {
             <span style={{ fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>System Status: Operational</span>
           </div>
           <h1 style={{ fontSize: 42, fontWeight: 900, margin: 0, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-            Welcome back, <span style={{ color: 'var(--primary)' }}>{user?.user_name?.split(' ')[0]}</span>
+            Welcome back, <span style={{ color: 'var(--primary)' }}>{user?.name?.split(' ')[0] || 'User'}</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: 15, marginTop: 8 }}>Here's what is happening in your workspace today.</p>
         </div>

@@ -10,10 +10,11 @@ exports.getAuditLogs = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: result.logs,
+            logs: result.logs,
             pagination: result.pagination
         });
     } catch (err) {
         console.error("Error fetching audit logs:", err);
-        return res.status(500).json({ success: false, message: "Failed to fetch audit logs" });
+        return res.status(500).json({ success: false, message: "Database error: " + err.message });
     }
 };

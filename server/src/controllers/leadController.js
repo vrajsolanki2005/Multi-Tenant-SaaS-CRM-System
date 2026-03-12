@@ -33,13 +33,22 @@ exports.createLead = async (req, res) => {
 exports.getLeads = async (req, res) => {
     try {
         const tenant_id = req.user.tenant_id;
-        const { page, limit, status } = req.query;
+        const { page = 1, limit = 15, status } = req.query;
         
         const result = await leadService.getLeads(tenant_id, { page, limit, status });
-        return res.status(200).json(result);
+        
+        // Return with proper structure
+        return res.status(200).json({
+            leads: result,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: result.length
+            }
+        });
     } catch (err) {
         console.error("Error in fetching leads", err);
-        return res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Database error: " + err.message });
     }
 };
 

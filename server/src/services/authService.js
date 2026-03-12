@@ -37,9 +37,9 @@ exports.createOrg = async(name, adminName, email, password) =>{
 exports.login = async (email, password) => {
     const conn = await db.getConnection();
     try {
-        // Explicitly select needed columns
+        // Explicitly select needed columns including user_name
         const [users] = await conn.execute(
-            'SELECT user_id, tenant_id, user_password, user_role FROM users WHERE user_email = ?', 
+            'SELECT user_id, tenant_id, user_name, user_email, user_password, user_role FROM users WHERE user_email = ?', 
             [email]
         );
 
@@ -59,7 +59,13 @@ exports.login = async (email, password) => {
         }
 
         const token = jwt.sign(
-            { user_id: user.user_id, tenant_id: user.tenant_id, user_role: user.user_role },
+            { 
+                user_id: user.user_id, 
+                tenant_id: user.tenant_id, 
+                user_role: user.user_role,
+                user_name: user.user_name,
+                user_email: user.user_email
+            },
             'gemini',
             { expiresIn: '1d' }
         );
