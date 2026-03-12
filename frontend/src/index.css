@@ -1,6 +1,10 @@
 /* ─── CRM Design System ───────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 *,
 *::before,
 *::after {
@@ -1219,4 +1223,107 @@ tbody tr:hover {
 
 .toggle-switch.active::after {
   transform: translateX(22px);
+}
+
+
+/* ─── Landing Page Styles ────────────────────────────────────────── */
+:root {
+  --background: #080a0f;
+  --surface: #0d1117;
+  --surface-2: #161b22;
+  --border: #21262d;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #22c55e 0%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-hero-gradient {
+  background: radial-gradient(ellipse at top, rgba(34, 197, 94, 0.15), transparent 50%),
+              radial-gradient(ellipse at bottom, rgba(251, 191, 36, 0.1), transparent 50%);
+}
+
+.bg-dot-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes float-delay {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes float-delay-2 {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -100; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float-delay 4s ease-in-out infinite;
+}
+
+.animate-float-delay-2 {
+  animation: float-delay-2 3.5s ease-in-out infinite;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+.animate-dash {
+  animation: dash 8s linear infinite;
+}
+
+.ticker-wrap {
+  overflow: hidden;
+  position: relative;
+}
+
+.ticker {
+  display: flex;
+  animation: ticker 40s linear infinite;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
