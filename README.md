@@ -46,6 +46,7 @@ A production-ready multi-tenant CRM system built with Node.js, Express, and MySQ
 - **Validation**: Express-validator
 - **Architecture**: MVC Pattern
 - **UI**: Custom CSS with modern design system
+- **Deployment**: Docker & Docker Compose
 
 ## Project Structure
 
@@ -72,7 +73,23 @@ frontend/
 
 ## Getting Started
 
-### Backend Setup
+### 🐳 Docker Deployment (Recommended)
+
+The easiest way to run the entire application:
+
+```bash
+# Start all services (MySQL, Backend, Frontend)
+docker-compose up -d
+
+# Access the application
+open http://localhost
+```
+
+For detailed Docker instructions, see [DOCKER_GUIDE.md](DOCKER_GUIDE.md)
+
+### Manual Setup
+
+#### Backend Setup
 
 1. Install dependencies:
 ```bash

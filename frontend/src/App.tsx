@@ -1,54 +1,64 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { ErrorBoundary } from './components/common';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
+import { Spinner } from './components/common';
+import { ROUTES } from './constants';
 
-import LandingPage   from './pages/LandingPage';
-import LoginPage    from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import ContactsPage  from './pages/ContactsPage';
-import LeadsPage     from './pages/LeadsPage';
-import TasksPage     from './pages/TasksPage';
-import UsersPage     from './pages/UsersPage';
-import AuditPage     from './pages/AuditPage';
-import SettingsPage  from './pages/SettingsPage';
-
-import ServicesPage  from './components/landing/services/page';
-import LegalPage     from './components/landing/legal/page';
-import AboutPage     from './components/landing/about/page';
+// Lazy load pages for better performance
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ContactsPage = lazy(() => import('./pages/ContactsPage'));
+const LeadsPage = lazy(() => import('./pages/LeadsPage'));
+const TasksPage = lazy(() => import('./pages/TasksPage'));
+const UsersPage = lazy(() => import('./pages/UsersPage'));
+const AuditPage = lazy(() => import('./pages/AuditPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const ServicesPage = lazy(() => import('./components/landing/services/page'));
+const LegalPage = lazy(() => import('./components/landing/legal/page'));
+const AboutPage = lazy(() => import('./components/landing/about/page'));
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login"    element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/legal"    element={<LegalPage />} />
-          <Route path="/about"    element={<AboutPage />} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <BrowserRouter>
+            <Suspense fallback={<Spinner fullScreen size={36} />}>
+              <Routes>
+                {/* Public */}
+                <Route path={ROUTES.HOME} element={<LandingPage />} />
+                <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+                <Route path={ROUTES.SERVICES} element={<ServicesPage />} />
+                <Route path={ROUTES.LEGAL} element={<LegalPage />} />
+                <Route path={ROUTES.ABOUT} element={<AboutPage />} />
 
-          {/* Protected — all wrapped in DashboardLayout */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/contacts"  element={<ContactsPage />} />
-              <Route path="/leads"     element={<LeadsPage />} />
-              <Route path="/tasks"     element={<TasksPage />} />
-              <Route path="/users"     element={<UsersPage />} />
-              <Route path="/audit"     element={<AuditPage />} />
-              <Route path="/settings"  element={<SettingsPage />} />
-            </Route>
-          </Route>
+                {/* Protected — all wrapped in DashboardLayout */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<DashboardLayout />}>
+                    <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+                    <Route path={ROUTES.CONTACTS} element={<ContactsPage />} />
+                    <Route path={ROUTES.LEADS} element={<LeadsPage />} />
+                    <Route path={ROUTES.TASKS} element={<TasksPage />} />
+                    <Route path={ROUTES.USERS} element={<UsersPage />} />
+                    <Route path={ROUTES.AUDIT} element={<AuditPage />} />
+                    <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                  </Route>
+                </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
