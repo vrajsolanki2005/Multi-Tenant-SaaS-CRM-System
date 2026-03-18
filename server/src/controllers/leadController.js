@@ -1,6 +1,7 @@
 const leadService = require('../services/leadService');
 const userService = require('../services/userService');
 const { logAction } = require('../services/auditService');
+const NotificationService = require('../services/notificationService');
 
 const STATUS_FLOW = {
     'new': ['contacted', 'closed'],
@@ -23,6 +24,10 @@ exports.createLead = async (req, res) => {
 
         const result = await leadService.createLead(tenant_id, created_by, { title, status, value, customer_id });
         await logAction('Lead created', 'lead', result.lead_id, created_by, tenant_id);
+        
+        // Create notification
+        await NotificationService.notifyLeadCreated(tenant_id, result.lead_id, title, req.user.user_name);
+        
         return res.status(201).json({ message: "Lead created", leadId: result.lead_id, lead: result });
     } catch (err) {
         console.error("Error in creating lead", err);
@@ -101,6 +106,12 @@ exports.updateLead = async (req, res) => {
         }
         
         await logAction('Lead updated', 'lead', lead_id, req.user.user_id, tenant_id);
+        
+        // Create notification for status change to converted
+        if (targetStatus === 'converted') {
+            await NotificationService.notifyLeadConverted(tenant_id, lead_id, title || result.title, req.user.user_name);
+        }
+        
         return res.status(200).json({ message: "Lead updated", lead: result });
     } catch (err) {
         console.error("Error in updating lead", err);
@@ -130,16 +141,26 @@ exports.assignLead = async (req, res) => {
     try{
         const id = req.params.id;
         const {user_id:targetUserId} = req.body;
-        const tenant_id= req.tenant_id;
+        const tenant_id = req.user.tenant_id;
 
-        const lead = await leadService.getLeadById(id, tenant_id);
+        const lead = await leadService.getLeadById(tenant_id, id);
         if(!lead) return res.status(404).json({message:"Lead not found"});
 
-        const targetUser=await userService.getUserById(targetUserId, tenant_id);
-        if(!targetUser) return res.status(404).json({success:false, message:"Target user does not exist in your organizations"})
+        const targetUser = await userService.getUserById(targetUserId, tenant_id);
+        if(!targetUser) return res.status(404).json({success:false, message:"Target user does not exist in your organization"})
 
         await leadService.assignLead(id, tenant_id, targetUserId);
         await logAction('Lead assigned', 'lead', id, req.user.user_id, tenant_id);
+        
+        // Create notification for assigned user
+        await NotificationService.notifyLeadAssigned(
+            tenant_id,
+            targetUserId,
+            id,
+            lead.title,
+            req.user.user_name
+        );
+        
         res.json({
             success:true, message:`Lead assigned successfully to ${targetUser.user_name}`
         }) 

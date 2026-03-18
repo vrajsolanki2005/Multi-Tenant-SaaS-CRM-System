@@ -2,9 +2,10 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Target, Contact, CheckSquare, Users,
-  TrendingUp, Clock, AlertCircle, Zap, ArrowRight, Activity, Plus
+  TrendingUp, Clock, AlertCircle, Zap, ArrowRight, Activity, Plus, Bell, X
 } from 'lucide-react';
 import { getDashboardStats } from '../api/dashboard';
+import { getNotifications, markAsRead, markAllAsRead } from '../api/notifications';
 import { useAuth } from '../context/AuthContext';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -79,6 +80,8 @@ export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   console.log('Dashboard: User object:', user);
   console.log('Dashboard: User name:', user?.name);
@@ -86,7 +89,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     getDashboardStats()
-      .then(res => { setData(res.data); setLoading(false); })
+      .then(res => { 
+        setData(res.data); 
+        setNotifications(res.data.notifications || []);
+        setLoading(false); 
+      })
       .catch(err => { 
         console.error('Dashboard error:', err); 
         const msg = err.response?.data?.message || err.message || "Backend synchronization failed. Ensure server is running on port 3000.";
@@ -94,6 +101,46 @@ export default function DashboardPage() {
         setLoading(false); 
       });
   }, []);
+
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      await markAsRead(notificationId);
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'success': return '✅';
+      case 'warning': return '⚠️';
+      case 'error': return '❌';
+      default: return 'ℹ️';
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'success': return 'var(--green)';
+      case 'warning': return 'var(--accent)';
+      case 'error': return 'var(--red)';
+      default: return 'var(--primary)';
+    }
+  };
 
   const stats = data?.counts || { leads: 0, customers: 0, openTasks: 0, completedTasks: 0, users: 0 };
   
@@ -122,6 +169,112 @@ export default function DashboardPage() {
         </div>
         
         <div style={{ display: 'flex', gap: 12 }}>
+          {/* Notification Bell */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="btn btn-secondary" 
+              style={{ padding: '12px', borderRadius: 12, position: 'relative' }}
+            >
+              <Bell size={16} />
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: -5,
+                  right: -5,
+                  background: 'var(--red)',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 20,
+                  height: 20,
+                  fontSize: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold'
+                }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+            
+            {/* Notifications Dropdown */}
+            {showNotifications && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: 8,
+                width: 400,
+                maxHeight: 500,
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 16,
+                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                zIndex: 1000,
+                overflow: 'hidden'
+              }}>
+                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>Notifications</h3>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={handleMarkAllAsRead}
+                        style={{ fontSize: 12, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => setShowNotifications(false)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                      No notifications yet
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div 
+                        key={notification.id}
+                        onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
+                        style={{
+                          padding: '16px 20px',
+                          borderBottom: '1px solid var(--border)',
+                          cursor: notification.is_read ? 'default' : 'pointer',
+                          background: notification.is_read ? 'transparent' : 'rgba(34,197,94,0.05)',
+                          borderLeft: notification.is_read ? 'none' : `3px solid ${getNotificationColor(notification.type)}`,
+                          opacity: notification.is_read ? 0.7 : 1
+                        }}
+                      >
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          <span style={{ fontSize: 16 }}>{getNotificationIcon(notification.type)}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: 'var(--text-primary)' }}>
+                              {notification.title}
+                            </div>
+                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>
+                              {notification.message}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                              {new Date(notification.created_at).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          
           <Link to="/leads?new=1" className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: 12 }}>
             <Plus size={16} /> Create Lead
           </Link>

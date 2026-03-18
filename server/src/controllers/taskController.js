@@ -1,5 +1,6 @@
 const taskService = require('../services/taskService');
 const { logAction } = require('../services/auditService');
+const NotificationService = require('../services/notificationService');
 
 exports.createTask = async (req, res) => {
     try {
@@ -17,6 +18,14 @@ exports.createTask = async (req, res) => {
         await logAction('Task created', 'task', task_id, req.user.user_id, tenant_id);
         if (assigned_to) {
             await logAction('Task assigned', 'task', task_id, req.user.user_id, tenant_id);
+            // Create notification for assigned user
+            await NotificationService.notifyTaskAssigned(
+                tenant_id,
+                assigned_to,
+                task_id,
+                task_name,
+                req.user.user_name
+            );
         }
         
         return res.status(201).json({
@@ -69,6 +78,9 @@ exports.updateTask = async (req, res) => {
         const task_id = req.params.id;
         const { task_name, description, status, priority, due_date, assigned_to } = req.body;
         
+        // Get current task to check if assignment changed
+        const currentTask = await taskService.getTaskById(tenant_id, task_id);
+        
         const result = await taskService.updateTask(
             tenant_id, 
             task_id, 
@@ -82,6 +94,17 @@ exports.updateTask = async (req, res) => {
         }
         
         await logAction('Task updated', 'task', task_id, req.user.user_id, tenant_id);
+        
+        // Create notification if task was reassigned
+        if (assigned_to && currentTask && currentTask.assigned_to !== assigned_to) {
+            await NotificationService.notifyTaskAssigned(
+                tenant_id,
+                assigned_to,
+                task_id,
+                task_name || currentTask.task_name,
+                req.user.user_name
+            );
+        }
         return res.status(200).json({ message: "Task updated successfully" });
     } catch (err) {
         console.error("Error updating task:", err);

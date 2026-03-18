@@ -11,6 +11,7 @@ const leadRoutes = require('./routes/leads.routes');
 const taskRoutes = require('./routes/tasks.routes');
 const auditRoutes = require('./routes/audit.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const notificationRoutes = require('./routes/notifications.routes');
 const landingRoutes = require('./routes/landing.routes');
 
 // Middleware
@@ -32,6 +33,7 @@ app.use('/api', leadRoutes)
 app.use('/api', taskRoutes)
 app.use('/api/audit-logs', auditRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/notifications', notificationRoutes)
 app.use('/api/landing', landingRoutes)
 
 // Health check route

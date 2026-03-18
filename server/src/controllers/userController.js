@@ -1,5 +1,6 @@
 const userService = require("../services/userService");
 const { logAction } = require("../services/auditService");
+const NotificationService = require('../services/notificationService');
 
 exports.getMyProfile = async (req, res) => {
   try {
@@ -28,6 +29,10 @@ exports.createUser = async (req, res) => {
       user_role,
     });
     await logAction("User created", "user", id, req.user.user_id, tenant_id);
+    
+    // Create notification for new user
+    await NotificationService.notifyNewUser(tenant_id, id, user_name, req.user.user_name);
+    
     return res.status(201).json({
       success: true,
       message: "User created successfully",
