@@ -1,6 +1,6 @@
 # Multi-Tenant SaaS CRM System
 
-A production-ready multi-tenant CRM system built with Node.js, Express, and MySQL.
+Developed a Multi-Tenant SaaS CRM system with role-based access control, tenant-isolated relational database design, workflow management, and production-ready architecture using MERN stack and MySQL.
 
 ## 🛠 Development Roadmap & Sprint Progress
 
