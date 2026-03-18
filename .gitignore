@@ -35,6 +35,10 @@ coverage/
 API_REFERENCE.md
 ARCHITECTURE.md
 INTEGRATION_GUIDE.md
-DOCKER_GUIDE.md
-DOCKER_SETUP.md
+
+# Docker
+Docker*
+docker-compose*.yml
+.dockerignore
+nginx.conf
 
