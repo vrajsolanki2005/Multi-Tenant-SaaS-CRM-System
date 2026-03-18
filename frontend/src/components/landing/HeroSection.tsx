@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { ArrowRight, Play, CheckCircle2, ClipboardCheck, Users, Building2 } from "lucide-react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { HoverActionButton } from "./ui/hover-button-1";
+import { getLandingSection } from "../../api/landing";
 
 const CRM_URL = "http://localhost:5173";
 
@@ -23,11 +24,13 @@ const roles = [
 
 const badges = ["99.9% Uptime SLA", "SOC2 Certified", "GDPR Compliant"];
 
-const METRICS = [
-  { icon: <ClipboardCheck className="w-3.5 h-3.5" />, label: "Requests handled",   value: "120K+", sub: "↑ 42% this quarter", color: "text-emerald-400" },
-  { icon: <Users className="w-3.5 h-3.5" />,          label: "Active companies",    value: "3,200+", sub: "across 45 countries", color: "text-indigo-400" },
-  { icon: <Building2 className="w-3.5 h-3.5" />,      label: "Client satisfaction", value: "98.7%",  sub: "avg rating",          color: "text-violet-400" },
-];
+interface HeroStat { label: string; value: string; sub: string; color: string; }
+
+const STAT_ICONS: Record<string, React.ReactNode> = {
+  "Requests handled": <ClipboardCheck className="w-3.5 h-3.5" />,
+  "Active companies": <Users className="w-3.5 h-3.5" />,
+  "Client satisfaction": <Building2 className="w-3.5 h-3.5" />,
+};
 
 function Counter({ to, duration = 1400 }: { to: number; duration?: number }) {
   const [val, setVal] = useState(0);
@@ -48,9 +51,14 @@ function Counter({ to, duration = 1400 }: { to: number; duration?: number }) {
 export default function HeroSection() {
   const [glowPos, setGlowPos] = useState({ x: -600, y: -600 });
   const [glowVis, setGlowVis] = useState(false);
+  const [metrics, setMetrics] = useState<HeroStat[]>([]);
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     const r = e.currentTarget.getBoundingClientRect();
     setGlowPos({ x: e.clientX - r.left, y: e.clientY - r.top });
+  }, []);
+
+  useEffect(() => {
+    getLandingSection<HeroStat>('hero_stats').then(setMetrics).catch(() => {});
   }, []);
 
   return (
@@ -151,9 +159,9 @@ export default function HeroSection() {
               className="flex flex-wrap gap-6 pt-6"
               style={{ borderTop: "1px solid #21262d" }}
             >
-              {METRICS.map(m => (
+              {metrics.map(m => (
                 <div key={m.label} className="flex flex-col gap-0.5">
-                  <div className={`flex items-center gap-1.5 text-xs font-medium ${m.color} mb-0.5`}>{m.icon}{m.label}</div>
+                  <div className={`flex items-center gap-1.5 text-xs font-medium ${m.color} mb-0.5`}>{STAT_ICONS[m.label]}{m.label}</div>
                   <div className="text-2xl font-extrabold" style={{ color: "#f0f6fc" }}>{m.value}</div>
                   <div className="text-xs" style={{ color: "#484f58" }}>{m.sub}</div>
                 </div>

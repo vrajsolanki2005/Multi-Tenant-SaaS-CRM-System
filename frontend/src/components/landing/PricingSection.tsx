@@ -1,34 +1,24 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Check, Zap } from "lucide-react";
 import { GlowingEffect } from "./ui/glowing-effect";
+import { getLandingSection } from "../../api/landing";
 
 const CRM_URL = "http://localhost:5173";
 
-const plans = [
-  {
-    id: "starter", name: "Starter", price: "$29", period: "/mo",
-    desc: "Perfect for small teams getting started with service request management.",
-    featured: false,
-    features: ["Up to 5 team members", "500 requests/month", "Client portal", "Email notifications", "Basic analytics", "Standard templates"],
-  },
-  {
-    id: "growth", name: "Growth", price: "$99", period: "/mo",
-    desc: "The go-to plan for growing companies with multiple departments.",
-    featured: true,
-    features: ["Up to 25 team members", "Unlimited requests", "Role-based access (Admin, Manager, Sales)", "Real-time dashboard & analytics", "Custom request categories", "Priority email & chat support", "Client status updates", "Team performance reports"],
-  },
-  {
-    id: "enterprise", name: "Enterprise", price: "Custom", period: "",
-    desc: "Enterprise-grade platform for large organisations with complex needs.",
-    featured: false,
-    features: ["Unlimited team members", "Unlimited requests", "Multi-tenant isolation", "Dedicated account manager", "Custom reporting & dashboards", "SLA guarantee (99.99%)", "SSO & SCIM provisioning", "On-premise deployment option"],
-  },
-];
+interface Plan {
+  id: string; name: string; price: string; period: string;
+  desc: string; featured: boolean; features: string[];
+}
 
 export default function PricingSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [plans, setPlans] = useState<Plan[]>([]);
+
+  useEffect(() => {
+    getLandingSection<Plan>('pricing').then(setPlans).catch(() => {});
+  }, []);
 
   return (
     <section id="pricing" ref={ref} className="py-24" style={{ background: "var(--background)" }}>

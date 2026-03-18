@@ -1,32 +1,25 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { GlowingEffect } from "./ui/glowing-effect";
+import { getLandingSection } from "../../api/landing";
 
-const testimonials = [
-  {
-    id: "t1",
-    quote: "FlowCRM transformed how we handle client requests. Our response time dropped from hours to minutes, and clients love the real-time status updates.",
-    author: "Sarah Chen", role: "Operations Director", company: "TechServ Co",
-    avatar: "👩‍💼", avatarBg: "from-violet-400 to-violet-600", stars: 5,
-  },
-  {
-    id: "t2",
-    quote: "We manage over 500 service requests daily across three departments. FlowCRM's role-based queues mean nothing falls through the cracks anymore.",
-    author: "Marcus Rivera", role: "Service Manager", company: "GlobalOps Inc",
-    avatar: "👨‍💻", avatarBg: "from-blue-400 to-blue-600", stars: 5,
-  },
-  {
-    id: "t3",
-    quote: "The dashboard alone saved us 15 hours a week of manual reporting. We can finally see bottlenecks in real-time and resolve them proactively.",
-    author: "Priya Mehta", role: "Head of Client Success", company: "ServicePro",
-    avatar: "👩‍🔬", avatarBg: "from-emerald-400 to-emerald-600", stars: 5,
-  },
-];
+interface Testimonial {
+  id: string; quote: string; author: string; role: string;
+  company: string; avatar: string; avatarBg: string; stars: number;
+}
+interface TestimonialStat { value: string; label: string; }
 
 export default function TestimonialsSection() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [stats, setStats] = useState<TestimonialStat[]>([]);
+
+  useEffect(() => {
+    getLandingSection<Testimonial>('testimonials').then(setTestimonials).catch(() => {});
+    getLandingSection<TestimonialStat>('testimonial_stats').then(setStats).catch(() => {});
+  }, []);
 
   return (
     <section ref={ref} className="py-24" style={{ background: "var(--background)" }}>
@@ -89,9 +82,9 @@ export default function TestimonialsSection() {
           className="mt-12 flex flex-wrap justify-center items-center gap-8 text-sm"
           style={{ color: "#484f58" }}
         >
-          {[["3,200+", "companies"], ["120K+", "requests handled"], ["96%", "resolution rate"], ["99.9%", "uptime"]].map(([val, label]) => (
+          {stats.map(({ value, label }) => (
             <div key={label} className="flex flex-col items-center">
-              <span className="text-2xl font-extrabold" style={{ color: "#f0f6fc" }}>{val}</span>
+              <span className="text-2xl font-extrabold" style={{ color: "#f0f6fc" }}>{value}</span>
               <span>{label}</span>
             </div>
           ))}
