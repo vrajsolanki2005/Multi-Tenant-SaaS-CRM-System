@@ -188,4 +188,4 @@ npm run dev
 - Role-based access control
 - Tenant isolation
 - Input validation on all endpoints
-- Rate limiting support (optional)
+- Rate limiting support
