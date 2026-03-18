@@ -22,6 +22,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const ServicesPage = lazy(() => import('./components/landing/services/page'));
 const LegalPage = lazy(() => import('./components/landing/legal/page'));
 const AboutPage = lazy(() => import('./components/landing/about/page'));
+const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
                 <Route path={ROUTES.SERVICES} element={<ServicesPage />} />
                 <Route path={ROUTES.LEGAL} element={<LegalPage />} />
                 <Route path={ROUTES.ABOUT} element={<AboutPage />} />
+                <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
 
                 {/* Protected — all wrapped in DashboardLayout */}
                 <Route element={<ProtectedRoute />}>
