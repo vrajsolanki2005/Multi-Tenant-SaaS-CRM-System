@@ -2,40 +2,48 @@
 
 A production-ready multi-tenant CRM system built with Node.js, Express, and MySQL.
 
-## Week 1 Progress ✅
+## 🛠 Development Roadmap & Sprint Progress
 
-- ✅ **Real Relational Database** - MYSQL with proper schema design
-- ✅ **Multi-Tenant Base** - Tenant isolation with tenant_id in all tables
-- ✅ **JWT Authentication** - Secure token-based auth system
-- ✅ **Role-Based Protection** - Middleware for role-based access control
-- ✅ **Proper Backend Structure** - MVC architecture with clean separation
-- ✅ **Clean SQL Usage** - Parameterized queries and proper database patterns
-- ✅ **Industry-Level User API** - Validation, pagination, filtering, security
+### **Phase 1: Architecture & Multi-Tenant Authentication**
+*Duration: Week 1*
+* **Core Infrastructure:** Initialized backend repository using Node.js/Express; configured MySQL connection lifecycle using `mysql2`.
+* **Database Design:** Engineered a relational schema for `organizations` and `users` featuring a global `tenant_id` for logical data partitioning.
+* **Security Layer:** * Implemented **Stateless Authentication** via JWT (JSON Web Tokens).
+    * Integrated **Bcrypt** for one-way password hashing and salted storage.
+    * Developed custom **RBAC (Role-Based Access Control)** middleware to enforce permission-based API access.
+* **Milestone:** Successfully deployed a secure onboarding flow for new organizations.
 
-## 🗓️ WEEK-2 PLAN (CORE MULTI-TENANT LOGIC)
+---
 
-- ✅ Customers table
-- ✅ Leads table
-- ✅ Tenant-based filtering
-- ✅ CRUD APIs
-- ✅ Pagination
-- ✅ Basic validation
+### **Phase 2: CRM Core & Data Isolation**
+*Duration: Week 2*
+* **Business Logic:** Designed and implemented the `customers` and `leads` data models.
+* **Tenant Integrity:** Engineered an abstraction layer for all database queries to ensure 100% tenant-based data isolation (No-Leak Policy).
+* **Data Handling:** * Built CRUD APIs for lead management with server-side **Pagination** (Limit/Offset).
+    * Implemented a dynamic **Lead Pipeline Status** system for workflow tracking.
+* **Performance:** Applied strategic **Database Indexing** on `tenant_id` and search columns to ensure sub-100ms query responses.
 
-## 🗓️ WEEK-3 PROGRESS (FRONTEND INTEGRATION)
+---
 
-- ✅ React + TypeScript frontend
-- ✅ Authentication pages (Login/Register)
-- ✅ Dashboard with real-time stats
-- ✅ Contacts management (Customers)
-- ✅ Leads management
-- ✅ Tasks management
-- ✅ Users management
-- ✅ Audit logs viewer
-- ✅ Settings page
-- ✅ Full API integration
-- ✅ Role-based UI controls
-- ✅ Protected routes
-- ✅ Responsive design
+### **Phase 3: System Integrity & Audit Workflows**
+*Duration: Week 3*
+* **Operational Features:** Developed a `tasks` engine for follow-ups and a centralized `audit_logs` system to track sensitive data mutations.
+* **Advanced Backend:** * Built lead assignment logic to distribute workloads across organization users.
+    * Refined search functionality with multi-parameter filtering.
+* **Validation:** Conducted rigorous **Edge-Case Testing** to verify that users cannot access resources outside of their assigned organization ID.
+* **Milestone:** Backend stabilized for enterprise-level task orchestration.
+
+---
+
+### **Phase 4: Frontend Architecture & Integration**
+*Duration: Week 4*
+* **React Environment:** Scaled the frontend using **Vite**; implemented **Axios** interceptors for centralized API error handling and token injection.
+* **UI/UX Implementation:** * Developed a modular Sidebar/Navbar layout with **Role-Based Rendering** (Admin vs. User views).
+    * Built dynamic Data Tables and Forms for Lead/Customer management.
+* **State Management:** Implemented **Protected Routing** to secure the Dashboard, ensuring unauthorized users are redirected to the login flow.
+* **Milestone:** Achieved full end-to-end integration between the React UI and MySQL Backend.
+
+---
 
 ## Tech Stack
 
