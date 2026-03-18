@@ -1,3 +1,4 @@
+
 CREATE DATABASE IF NOT EXISTS saas_crm;
 USE saas_crm;
 

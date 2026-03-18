@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const NotificationService = require('../services/notificationService');
 
 exports.getDashboardStats = async (req, res) => {
     try {
@@ -29,6 +30,10 @@ exports.getDashboardStats = async (req, res) => {
         // Overdue tasks
         const [overdueTasks] = await db.query('SELECT task_id, task_name, due_date FROM tasks WHERE tenant_id = ? AND due_date < NOW() AND status != "completed" ORDER BY due_date ASC LIMIT 5', [tenant_id]);
 
+        // Get recent notifications
+        const notifications = await NotificationService.getUserNotifications(tenant_id, req.user.user_id, 5, 0);
+        const unreadCount = await NotificationService.getUnreadCount(tenant_id, req.user.user_id);
+
         return res.json({
             counts: {
                 leads: leadCount[0].count,
@@ -40,7 +45,9 @@ exports.getDashboardStats = async (req, res) => {
             leadStatusDist,
             recentLeads,
             recentTasks,
-            overdueTasks
+            overdueTasks,
+            notifications,
+            unreadNotificationCount: unreadCount
         });
     } catch (err) {
         console.error('Error fetching dashboard stats:', err);
