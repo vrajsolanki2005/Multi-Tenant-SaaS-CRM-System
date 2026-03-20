@@ -16,7 +16,7 @@ const STATUS_CFG: Record<string, [string, string]> = {
 type Task = { task_id: number; task_name: string; description: string; status: string; priority: string; due_date: string; lead_id: number | null; assigned_to: number | null; };
 
 export default function TasksPage() {
-  const { isManager, isAdmin } = useAuth();
+  const { user, isManager, isAdmin, isSales } = useAuth();
   const [tasks, setTasks]     = useState<Task[]>([]);
   const [leads, setLeads]     = useState<any[]>([]);
   const [users, setUsers]     = useState<any[]>([]);
@@ -44,12 +44,40 @@ export default function TasksPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setEditing(null); setForm({ task_name: '', description: '', status: 'pending', priority: 'medium', due_date: '', lead_id: '', assigned_to: '' }); setModal(true); };
-  const openEdit   = (t: Task) => { setEditing(t); setForm({ task_name: t.task_name, description: t.description ?? '', status: t.status, priority: t.priority, due_date: t.due_date?.slice(0, 10) ?? '', lead_id: t.lead_id?.toString() ?? '', assigned_to: t.assigned_to?.toString() ?? '' }); setModal(true); };
+  const openCreate = () => { 
+    console.log('User role:', user?.role, 'isManager:', isManager, 'isAdmin:', isAdmin, 'isSales:', isSales);
+    if (isSales) {
+      showToast('Only managers can create tasks', true);
+      return;
+    }
+    setEditing(null); 
+    setForm({ task_name: '', description: '', status: 'pending', priority: 'medium', due_date: '', lead_id: '', assigned_to: '' }); 
+    setModal(true); 
+  };
+  const openEdit   = (t: Task) => { 
+    if (isSales && t.assigned_to !== user?.userId) {
+      showToast('You can only edit tasks assigned to you', true);
+      return;
+    }
+    setEditing(t); 
+    setForm({ task_name: t.task_name, description: t.description ?? '', status: t.status, priority: t.priority, due_date: t.due_date?.slice(0, 10) ?? '', lead_id: t.lead_id?.toString() ?? '', assigned_to: t.assigned_to?.toString() ?? '' }); 
+    setModal(true); 
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true);
-    const data = { task_name: form.task_name, description: form.description, status: form.status, priority: form.priority, due_date: form.due_date || undefined, lead_id: form.lead_id ? +form.lead_id : undefined, assigned_to: form.assigned_to ? +form.assigned_to : undefined };
+    const data = { 
+      task_name: form.task_name, 
+      description: form.description, 
+      status: form.status, 
+      priority: form.priority, 
+      due_date: form.due_date || undefined, 
+      lead_id: form.lead_id ? +form.lead_id : null, 
+      assigned_to: form.assigned_to ? +form.assigned_to : null 
+    };
+    console.log('Saving task with data:', data);
+    console.log('Form assigned_to value:', form.assigned_to);
+    console.log('Final assigned_to value:', data.assigned_to);
     try {
       if (editing) { await updateTask(editing.task_id, data); showToast('Task updated'); }
       else          { await createTask(data); showToast('Task created'); }
@@ -72,7 +100,7 @@ export default function TasksPage() {
           <h2 style={{ fontSize: 20, fontWeight: 800 }}>Tasks</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{tasks.length} tasks</p>
         </div>
-        {isManager && <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Task</button>}
+        {(isManager || isAdmin) && <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Task</button>}
       </div>
 
       {/* Filters */}
@@ -105,6 +133,7 @@ export default function TasksPage() {
                           <td>
                             <div style={{ fontWeight: 600 }}>{t.task_name}</div>
                             {t.description && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{t.description.slice(0, 60)}</div>}
+                            {t.lead_title && <div style={{ fontSize: 11, color: 'var(--primary)', marginTop: 2 }}>📋 {t.lead_title}</div>}
                           </td>
                           <td><span className="badge" style={{ color: pc, background: pbg }}>{t.priority}</span></td>
                           <td><span className="badge" style={{ color: sc, background: sbg }}>{t.status.replace('_', ' ')}</span></td>
@@ -112,7 +141,7 @@ export default function TasksPage() {
                             {t.due_date ? new Date(t.due_date).toLocaleDateString() : '—'}
                             {isOverdue && ' ⚠'}
                           </td>
-                          {isManager && (
+                          {(isManager || isAdmin) && (
                             <td>
                               <div style={{ display: 'flex', gap: 6 }}>
                                 <button className="btn-icon" onClick={() => openEdit(t)}><Pencil size={14} /></button>
@@ -160,7 +189,7 @@ export default function TasksPage() {
                   <input className="input" type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
                 </div>
                 <div className="form-group"><label className="label">Assign To</label>
-                  <select className="input select" value={form.assigned_to} onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value }))}>
+                  <select className="input select" value={form.assigned_to} onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value }))} disabled={isSales}>
                     <option value="">Unassigned</option>
                     {users.map(u => <option key={u.user_id} value={u.user_id}>{u.user_name}</option>)}
                   </select>
