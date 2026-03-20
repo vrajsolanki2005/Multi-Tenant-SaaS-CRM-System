@@ -13,7 +13,10 @@ const STATUS_FLOW = {
 
 exports.createLead = async (req, res) => {
     try {
-        const { title, status, value, customer_id } = req.body;
+        const { title, status, value, customer_id, assigned_to } = req.body;
+        
+        console.log('Create Lead - Request Body:', req.body);
+        console.log('Create Lead - assigned_to from body:', assigned_to);
         
         if (!title) {
             return res.status(400).json({ message: "Title is required" });
@@ -22,7 +25,7 @@ exports.createLead = async (req, res) => {
         const tenant_id = req.user.tenant_id;
         const created_by = req.user.user_id;
 
-        const result = await leadService.createLead(tenant_id, created_by, { title, status, value, customer_id });
+        const result = await leadService.createLead(tenant_id, created_by, { title, status, value, customer_id, assigned_to });
         await logAction('Lead created', 'lead', result.lead_id, created_by, tenant_id);
         
         // Create notification
@@ -40,7 +43,12 @@ exports.getLeads = async (req, res) => {
         const tenant_id = req.user.tenant_id;
         const { page = 1, limit = 15, status } = req.query;
         
-        const result = await leadService.getLeads(tenant_id, { page, limit, status });
+        const result = await leadService.getLeads(
+            tenant_id, 
+            { page, limit, status },
+            req.user.user_id,
+            req.user.user_role
+        );
         
         // Return with proper structure
         return res.status(200).json({
@@ -62,7 +70,12 @@ exports.getLeadById = async (req, res) => {
         const tenant_id = req.user.tenant_id;
         const lead_id = req.params.id;
         
-        const result = await leadService.getLeadById(tenant_id, lead_id);
+        const result = await leadService.getLeadById(
+            tenant_id, 
+            lead_id,
+            req.user.user_id,
+            req.user.user_role
+        );
         
         if (!result) {
             return res.status(404).json({ message: "Lead not found" });
@@ -81,12 +94,20 @@ exports.updateLead = async (req, res) => {
     try {
         const tenant_id = req.user.tenant_id;
         const lead_id = req.params.id;
-        const { title, status, newStatus, value, customer_id } = req.body;
+        const { title, status, newStatus, value, customer_id, assigned_to } = req.body;
+        
+        console.log('Update Lead - Request Body:', req.body);
+        console.log('Update Lead - assigned_to from body:', assigned_to);
         
         const targetStatus = newStatus || status;
         
         if (targetStatus) {
-            const currentLead = await leadService.getLeadById(tenant_id, lead_id);
+            const currentLead = await leadService.getLeadById(
+                tenant_id, 
+                lead_id,
+                req.user.user_id,
+                req.user.user_role
+            );
             if (!currentLead) {
                 return res.status(404).json({ message: "Lead not found" });
             }
@@ -99,10 +120,16 @@ exports.updateLead = async (req, res) => {
             }
         }
         
-        const result = await leadService.updateLead(tenant_id, lead_id, { title, status: targetStatus, value, customer_id });
+        const result = await leadService.updateLead(
+            tenant_id, 
+            lead_id, 
+            { title, status: targetStatus, value, customer_id, assigned_to },
+            req.user.user_id,
+            req.user.user_role
+        );
         
         if (!result) {
-            return res.status(404).json({ message: "Lead not found" });
+            return res.status(404).json({ message: "Lead not found or access denied" });
         }
         
         await logAction('Lead updated', 'lead', lead_id, req.user.user_id, tenant_id);

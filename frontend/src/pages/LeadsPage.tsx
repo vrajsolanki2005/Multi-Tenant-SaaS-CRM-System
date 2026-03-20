@@ -16,10 +16,10 @@ const STATUS_FLOW: Record<string, string[]> = {
   qualified: ['converted', 'closed'], converted: [], closed: ['new'],
 };
 
-type Lead = { lead_id: number; title: string; status: string; value: number | null; customer_id: number | null; created_at: string; };
+type Lead = { lead_id: number; title: string; status: string; value: number | null; customer_id: number | null; assigned_to: number | null; created_at: string; };
 
 export default function LeadsPage() {
-  const { isAdmin, isManager } = useAuth();
+  const { isAdmin, isManager, isSales, user } = useAuth();
   const [leads, setLeads]       = useState<Lead[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [users, setUsers]       = useState<any[]>([]);
@@ -29,7 +29,7 @@ export default function LeadsPage() {
   const [total, setTotal]       = useState(0);
   const [modal, setModal]       = useState<'create' | 'edit' | 'assign' | null>(null);
   const [selected, setSelected] = useState<Lead | null>(null);
-  const [form, setForm]         = useState({ title: '', status: 'new', value: '', customer_id: '' });
+  const [form, setForm]         = useState({ title: '', status: 'new', value: '', customer_id: '', assigned_to: '' });
   const [assignUserId, setAssignUserId] = useState('');
   const [saving, setSaving]     = useState(false);
   const [toast, setToast]       = useState('');
@@ -51,14 +51,36 @@ export default function LeadsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setForm({ title: '', status: 'new', value: '', customer_id: '' }); setModal('create'); };
-  const openEdit   = (l: Lead) => { setSelected(l); setForm({ title: l.title, status: l.status, value: l.value?.toString() ?? '', customer_id: l.customer_id?.toString() ?? '' }); setModal('edit'); };
+  const openCreate = () => { 
+    if (isSales) {
+      showToast('Only managers can create leads', true);
+      return;
+    }
+    setForm({ title: '', status: 'new', value: '', customer_id: '', assigned_to: '' }); 
+    setModal('create'); 
+  };
+  const openEdit   = (l: Lead) => { 
+    if (isSales && l.assigned_to !== user?.userId) {
+      showToast('You can only edit leads assigned to you', true);
+      return;
+    }
+    setSelected(l); 
+    setForm({ title: l.title, status: l.status, value: l.value?.toString() ?? '', customer_id: l.customer_id?.toString() ?? '', assigned_to: l.assigned_to?.toString() ?? '' }); 
+    setModal('edit'); 
+  };
   const openAssign = (l: Lead) => { setSelected(l); setAssignUserId(''); setModal('assign'); };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true);
     try {
-      const data = { title: form.title, status: form.status, value: form.value ? +form.value : undefined, customer_id: form.customer_id ? +form.customer_id : undefined };
+      const data = { 
+        title: form.title, 
+        status: form.status, 
+        value: form.value ? +form.value : undefined, 
+        customer_id: form.customer_id ? +form.customer_id : null,
+        assigned_to: form.assigned_to ? +form.assigned_to : null
+      };
+      console.log('Saving lead with data:', data);
       if (modal === 'edit' && selected) { await updateLead(selected.lead_id, { ...data, newStatus: data.status }); showToast('Lead updated'); }
       else { await createLead(data); showToast('Lead created'); }
       setModal(null); load();
@@ -87,7 +109,9 @@ export default function LeadsPage() {
       <div className="section-header">
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800 }}>Leads</h2>
-          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>{total} total leads</p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
+            {isSales ? 'My leads' : `${total} total leads`}
+          </p>
         </div>
         {isManager && <button className="btn btn-primary" onClick={openCreate}><Plus size={15} /> New Lead</button>}
       </div>
@@ -109,20 +133,21 @@ export default function LeadsPage() {
             : leads.length === 0
               ? <div className="empty-state"><Target size={40} /><p>No leads found</p></div>
               : <table>
-                  <thead><tr><th>Title</th><th>Status</th><th>Value</th><th>Created</th>{isManager && <th>Actions</th>}</tr></thead>
+                  <thead><tr><th>Title</th><th>Status</th><th>Value</th><th>Created</th>{(isManager || isSales) && <th>Actions</th>}</tr></thead>
                   <tbody>
                     {leads.map(l => {
                       const [c, bg] = STATUS_COLORS[l.status] ?? ['#94a3b8', '#f1f5f9'];
+                      const canEdit = isManager || (isSales && l.assigned_to === user?.userId);
                       return (
                         <tr key={l.lead_id}>
                           <td style={{ fontWeight: 600 }}>{l.title}</td>
                           <td><span className="badge" style={{ color: c, background: bg }}>{l.status}</span></td>
                           <td style={{ color: 'var(--text-muted)' }}>{l.value ? `$${Number(l.value).toLocaleString()}` : '—'}</td>
                           <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{new Date(l.created_at).toLocaleDateString()}</td>
-                          {isManager && (
+                          {(isManager || isSales) && (
                             <td>
                               <div style={{ display: 'flex', gap: 6 }}>
-                                <button className="btn-icon" onClick={() => openEdit(l)}><Pencil size={14} /></button>
+                                {canEdit && <button className="btn-icon" onClick={() => openEdit(l)}><Pencil size={14} /></button>}
                                 {isAdmin && <button className="btn-icon" onClick={() => openAssign(l)}><UserPlus size={14} /></button>}
                                 {isAdmin && <button className="btn-icon" style={{ color: 'var(--red)' }} onClick={() => handleDelete(l)}><Trash2 size={14} /></button>}
                               </div>
@@ -172,6 +197,12 @@ export default function LeadsPage() {
                 <select className="input select" value={form.customer_id} onChange={e => setForm(f => ({ ...f, customer_id: e.target.value }))}>
                   <option value="">No customer</option>
                   {customers.map(c => <option key={c.customer_id} value={c.customer_id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group"><label className="label">Assign To</label>
+                <select className="input select" value={form.assigned_to} onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value }))} disabled={isSales}>
+                  <option value="">Unassigned</option>
+                  {users.map(u => <option key={u.user_id} value={u.user_id}>{u.user_name}</option>)}
                 </select>
               </div>
               <div className="modal-footer">

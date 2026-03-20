@@ -4,12 +4,18 @@ exports.createLead = async (tenant_id, created_by, data) => {
     const conn = await db.getConnection();
     try {
         await conn.beginTransaction();
+        
+        // Use assigned_to from data if provided, otherwise set to null (not created_by)
+        const assignedTo = data.assigned_to !== undefined ? data.assigned_to : null;
+        
+        console.log('LeadService - Creating lead with assigned_to:', assignedTo);
+        
         const [result] = await conn.execute(
             'INSERT INTO leads (tenant_id, title, status, value, customer_id, assigned_to) VALUES (?,?,?,?,?,?)',
-            [tenant_id, data.title, data.status || 'new', data.value, data.customer_id, created_by]
+            [tenant_id, data.title, data.status || 'new', data.value, data.customer_id, assignedTo]
         );
         await conn.commit();
-        return { lead_id: result.insertId, ...data };
+        return { lead_id: result.insertId, ...data, assigned_to: assignedTo };
     } catch (err) {
         await conn.rollback();
         throw err;
@@ -18,7 +24,7 @@ exports.createLead = async (tenant_id, created_by, data) => {
     }
 };
 
-exports.getLeads = async (tenant_id, filters) => {
+exports.getLeads = async (tenant_id, filters, user_id = null, role = null) => {
     const conn = await db.getConnection();
     try {
         const { page = 1, limit = 10, status } = filters;
@@ -26,6 +32,12 @@ exports.getLeads = async (tenant_id, filters) => {
         
         let query = 'SELECT * FROM leads WHERE tenant_id = ?';
         const params = [tenant_id];
+        
+        // Sales users can only see leads assigned to them
+        if (role === 'sales' && user_id) {
+            query += ' AND assigned_to = ?';
+            params.push(user_id);
+        }
         
         if (status) {
             query += ' AND status = ?';
@@ -43,13 +55,19 @@ exports.getLeads = async (tenant_id, filters) => {
     }
 };
 
-exports.getLeadById = async (tenant_id, lead_id) => {
+exports.getLeadById = async (tenant_id, lead_id, user_id = null, role = null) => {
     const conn = await db.getConnection();
     try {
-        const [result] = await conn.execute(
-            'SELECT * FROM leads WHERE tenant_id = ? AND lead_id = ?',
-            [tenant_id, lead_id]
-        );
+        let query = 'SELECT * FROM leads WHERE tenant_id = ? AND lead_id = ?';
+        const params = [tenant_id, lead_id];
+        
+        // Sales users can only see leads assigned to them
+        if (role === 'sales' && user_id) {
+            query += ' AND assigned_to = ?';
+            params.push(user_id);
+        }
+        
+        const [result] = await conn.execute(query, params);
         return result.length > 0 ? result[0] : null;
     } catch (err) {
         throw err;
@@ -58,7 +76,7 @@ exports.getLeadById = async (tenant_id, lead_id) => {
     }
 };
 
-exports.updateLead = async (tenant_id, lead_id, data) => {
+exports.updateLead = async (tenant_id, lead_id, data, user_id = null, role = null) => {
     const conn = await db.getConnection();
     try {
         await conn.beginTransaction();
@@ -82,15 +100,24 @@ exports.updateLead = async (tenant_id, lead_id, data) => {
             updates.push('customer_id = ?');
             values.push(data.customer_id);
         }
+        if (data.assigned_to !== undefined) {
+            updates.push('assigned_to = ?');
+            values.push(data.assigned_to);
+        }
         
         if (updates.length === 0) return null;
         
         values.push(tenant_id, lead_id);
         
-        const [result] = await conn.execute(
-            `UPDATE leads SET ${updates.join(', ')} WHERE tenant_id = ? AND lead_id = ?`,
-            values
-        );
+        let query = `UPDATE leads SET ${updates.join(', ')} WHERE tenant_id = ? AND lead_id = ?`;
+        
+        // Sales users can only update leads assigned to them
+        if (role === 'sales' && user_id) {
+            query += ' AND assigned_to = ?';
+            values.push(user_id);
+        }
+        
+        const [result] = await conn.execute(query, values);
         
         await conn.commit();
         return result.affectedRows === 0 ? null : { lead_id, ...data };
@@ -122,7 +149,7 @@ exports.deleteLead = async (tenant_id, lead_id) => {
 
 exports.assignLead = async (lead_id, tenant_id, user_id) => {
     await db.execute(
-        'UPDATE leads SET assigned_to = ? WHERE id = ? AND tenant_id = ?',
+        'UPDATE leads SET assigned_to = ? WHERE lead_id = ? AND tenant_id = ?',
         [user_id, lead_id, tenant_id]
     )
 }
