@@ -10,6 +10,7 @@ export interface AuthUser {
   role: UserRole;
   email: string;
   name: string;
+  sessionId?: string; // Add session tracking
 }
 
 interface AuthCtx {
@@ -21,6 +22,7 @@ interface AuthCtx {
   updateUser: (patch: Partial<AuthUser>) => void;
   isAdmin: boolean;
   isManager: boolean;
+  isSales: boolean;
 }
 
 const AuthContext = createContext<AuthCtx | null>(null);
@@ -60,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Email/password login ──────────────────────────────────────────
   const login = async (email: string, password: string) => {
     const res = await apiLogin(email, password);
-    const { token, orgId, userId } = res.data;
+    const { token, orgId, userId, sessionId, user: userData } = res.data;
 
     let role: UserRole = 'sales';
     let name = email;
@@ -70,12 +72,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name = payload.user_name || payload.name || payload.user_email || email;
     } catch { /* ignore */ }
 
-    const u: AuthUser = { userId, orgId, role, email, name };
+    // Use server-provided user data if available
+    const u: AuthUser = {
+      userId: userData?.id || userId,
+      orgId: userData?.tenant_id || orgId,
+      role: userData?.role || role,
+      email: userData?.email || email,
+      name: userData?.name || name,
+      sessionId: sessionId
+    };
+    
     setUser(u);
     localStorage.setItem('crm_user', JSON.stringify(u));
     localStorage.setItem('crm_token', token);
+    localStorage.setItem('crm_session', sessionId || '');
 
-    // Fetch fresh profile for accurate name
+    // Fetch fresh profile for accurate data
     try {
       const profileRes = await getMyProfile();
       const profile = profileRes.data.data;
@@ -86,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role:   profile.user_role,
           email:  profile.user_email,
           name:   profile.user_name,
+          sessionId: sessionId
         };
         setUser(updated);
         localStorage.setItem('crm_user', JSON.stringify(updated));
@@ -115,10 +128,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // ── Logout ────────────────────────────────────────────────────────
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Call logout API to cleanup session
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('Logout API error:', error);
+    }
+    
     setUser(null);
     localStorage.removeItem('crm_user');
     localStorage.removeItem('crm_token');
+    localStorage.removeItem('crm_session');
   };
 
   // ── Patch user ────────────────────────────────────────────────────
@@ -133,9 +157,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin   = user?.role === 'admin' || user?.role === 'superAdmin';
   const isManager = isAdmin || user?.role === 'manager';
+  const isSales   = user?.role === 'sales';
+
+  // Debug logging
+  console.log('AuthContext - User role:', user?.role, 'isAdmin:', isAdmin, 'isManager:', isManager, 'isSales:', isSales);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, loginWithToken, logout, updateUser, isAdmin, isManager }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginWithToken, logout, updateUser, isAdmin, isManager, isSales }}>
       {children}
     </AuthContext.Provider>
   );

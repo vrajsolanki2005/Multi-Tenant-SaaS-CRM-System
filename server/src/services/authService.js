@@ -1,6 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const sessionService = require('./sessionService');
 
 //create-org
 exports.createOrg = async(name, adminName, email, password) =>{
@@ -33,7 +33,7 @@ exports.createOrg = async(name, adminName, email, password) =>{
     }
 }
 
-//login
+//login with session management
 exports.login = async (email, password) => {
     const conn = await db.getConnection();
     try {
@@ -45,7 +45,7 @@ exports.login = async (email, password) => {
 
         if (users.length === 0) {
             const error = new Error('Invalid credentials');
-            error.statusCode = 401; // Attach status code
+            error.statusCode = 401;
             throw error;
         }
 
@@ -58,20 +58,34 @@ exports.login = async (email, password) => {
             throw error;
         }
 
-        const token = jwt.sign(
-            { 
-                user_id: user.user_id, 
-                tenant_id: user.tenant_id, 
-                user_role: user.user_role,
-                user_name: user.user_name,
-                user_email: user.user_email
-            },
-            'gemini',
-            { expiresIn: '1d' }
+        // Create session instead of direct JWT
+        const { token, sessionId } = sessionService.createSession(
+            user.user_id,
+            user.tenant_id,
+            user.user_role,
+            user.user_name,
+            user.user_email
         );
 
-        return { user_id: user.user_id, org_id: user.tenant_id, token };
+        return { 
+            user_id: user.user_id, 
+            org_id: user.tenant_id, 
+            token,
+            sessionId,
+            user: {
+                id: user.user_id,
+                name: user.user_name,
+                email: user.user_email,
+                role: user.user_role,
+                tenant_id: user.tenant_id
+            }
+        };
     } finally {
         conn.release();
     }
+}
+
+// Logout with session cleanup
+exports.logout = async (sessionId) => {
+    return sessionService.invalidateSession(sessionId);
 }

@@ -8,12 +8,13 @@ exports.allowRoles = (...allowedRoles) => {
             if (!allowedRoles.includes(userRole)) {
                 return res.status(403).json({
                     success: false,
-                    message: "Access Denied: Insufficient permissions"
+                    message: `Access Denied: Role '${userRole}' not in allowed roles: ${allowedRoles.join(', ')}`
                 });
             }
 
             next();
         } catch (error) {
+            console.error('RBAC Error:', error);
             return res.status(500).json({
                 success: false,
                 message: "Authorization error"

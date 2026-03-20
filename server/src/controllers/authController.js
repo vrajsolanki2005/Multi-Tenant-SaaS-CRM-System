@@ -46,17 +46,21 @@ exports.login = async(req, res) =>{
         // call the service
         const result = await authService.login(email, password);
 
+        // Set session-based cookie with unique identifier
         res.cookie('token', result.token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 24 * 60 * 60 * 1000,
+            path: '/'
         });
 
         return res.status(200).json({
             success: true,
             message: "Login successful",
             token: result.token,
+            sessionId: result.sessionId,
+            user: result.user,
             orgId: result.org_id,
             userId: result.user_id
         })
@@ -66,5 +70,31 @@ exports.login = async(req, res) =>{
         const statusCode = err.statusCode || 500;
         const message = err.message || "Internal server error";
         return res.status(statusCode).json({ success: false, message });
+    }
+}
+
+// Logout with session cleanup
+exports.logout = async (req, res) => {
+    try {
+        const sessionId = req.user?.session_id;
+        
+        if (sessionId) {
+            await authService.logout(sessionId);
+        }
+        
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/'
+        });
+        
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
+        });
+    } catch (err) {
+        console.error("Error in logout", err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
