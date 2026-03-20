@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onClose }: SidebarProps) {
-  const { user, logout, isAdmin, isManager } = useAuth();
+  const { user, logout, isAdmin, isManager, isSales } = useAuth();
   const navigate = useNavigate();
 
   const handleLinkClick = () => {
@@ -46,7 +46,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
         <NavLink to="/leads" className={navClass} onClick={handleLinkClick}>
           <Target size={16} />
-          Leads
+          {isSales ? 'My Leads' : 'Leads'}
         </NavLink>
 
         <NavLink to="/contacts" className={navClass} onClick={handleLinkClick}>
@@ -56,7 +56,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
         <NavLink to="/tasks" className={navClass} onClick={handleLinkClick}>
           <CheckSquare size={16} />
-          Tasks
+          {isSales ? 'My Tasks' : 'Tasks'}
         </NavLink>
 
         {isManager && (

@@ -447,7 +447,10 @@ export default function DashboardPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                       <div style={{ width: 10, height: 10, borderRadius: '50%', background: t.priority === 'high' || t.priority === 'urgent' ? 'var(--red)' : '#3b82f6', boxShadow: `0 0 10px ${t.priority === 'urgent' ? 'var(--red)' : 'transparent'}` }} />
-                      <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{t.task_name}</div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{t.task_name}</div>
+                        {t.lead_title && <div style={{ fontSize: 11, color: 'var(--primary)' }}>📋 {t.lead_title}</div>}
+                      </div>
                     </div>
                     <div className="badge" style={{ background: 'var(--surface-2)', fontSize: 10, padding: '4px 10px' }}>{t.status}</div>
                   </div>
