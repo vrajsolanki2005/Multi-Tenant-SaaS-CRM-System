@@ -107,6 +107,19 @@ exports.updateTask = async (tenant_id, task_id, data, user_id = null, role = nul
     try {
         await conn.beginTransaction();
         
+        // Check if task is completed and trying to change status
+        if (data.status) {
+            const [currentTask] = await conn.execute(
+                'SELECT status FROM tasks WHERE task_id = ? AND tenant_id = ?',
+                [task_id, tenant_id]
+            );
+            
+            if (currentTask.length > 0 && currentTask[0].status === 'completed' && data.status !== 'completed') {
+                await conn.rollback();
+                throw new Error('Cannot change status of a completed task');
+            }
+        }
+        
         const updates = [];
         const values = [];
         

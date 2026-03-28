@@ -142,6 +142,9 @@ exports.updateLead = async (req, res) => {
         return res.status(200).json({ message: "Lead updated", lead: result });
     } catch (err) {
         console.error("Error in updating lead", err);
+        if (err.message === 'Cannot change status of a converted or closed lead') {
+            return res.status(400).json({ message: err.message });
+        }
         return res.status(500).json({ message: "Internal server error" });
     }
 };

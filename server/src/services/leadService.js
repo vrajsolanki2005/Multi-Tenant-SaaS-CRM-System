@@ -81,6 +81,21 @@ exports.updateLead = async (tenant_id, lead_id, data, user_id = null, role = nul
     try {
         await conn.beginTransaction();
         
+        // Check if lead is converted/closed and trying to change status
+        if (data.status) {
+            const [currentLead] = await conn.execute(
+                'SELECT status FROM leads WHERE lead_id = ? AND tenant_id = ?',
+                [lead_id, tenant_id]
+            );
+            
+            if (currentLead.length > 0 && 
+                (currentLead[0].status === 'converted' || currentLead[0].status === 'closed') && 
+                data.status !== currentLead[0].status) {
+                await conn.rollback();
+                throw new Error('Cannot change status of a converted or closed lead');
+            }
+        }
+        
         const updates = [];
         const values = [];
         

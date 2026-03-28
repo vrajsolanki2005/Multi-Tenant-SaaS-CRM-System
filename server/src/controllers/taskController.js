@@ -177,6 +177,9 @@ exports.updateTask = async (req, res) => {
         return res.status(200).json({ message: "Task updated successfully" });
     } catch (err) {
         console.error("Error updating task:", err);
+        if (err.message === 'Cannot change status of a completed task') {
+            return res.status(400).json({ message: err.message });
+        }
         return res.status(500).json({ message: "Internal server error" });
     }
 };
