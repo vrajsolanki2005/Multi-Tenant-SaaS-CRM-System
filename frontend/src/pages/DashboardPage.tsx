@@ -2,16 +2,19 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Target, Contact, CheckSquare, Users,
-  TrendingUp, Clock, AlertCircle, Zap, ArrowRight, Activity, Plus, Bell, X
+  TrendingUp, Clock, AlertCircle, Zap, ArrowRight, Activity, Plus
 } from 'lucide-react';
 import { getDashboardStats } from '../api/dashboard';
-import { getNotifications, markAsRead, markAllAsRead } from '../api/notifications';
 import { useAuth } from '../context/AuthContext';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, LineChart, Line, Legend } from 'recharts';
 
 const STATUS_COLORS: Record<string, string> = {
   new: '#22c55e', contacted: '#3b82f6', qualified: '#f59e0b',
   converted: '#10b981', closed: '#da3633',
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  low: '#3b82f6', medium: '#f59e0b', high: '#ef4444', urgent: '#dc2626',
 };
 
 function Shimmer({ w = '100%', h = 20, r = 8 }: { w?: string | number; h?: number; r?: number }) {
@@ -80,8 +83,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+
 
   console.log('Dashboard: User object:', user);
   console.log('Dashboard: User name:', user?.name);
@@ -90,8 +92,7 @@ export default function DashboardPage() {
   useEffect(() => {
     getDashboardStats()
       .then(res => { 
-        setData(res.data); 
-        setNotifications(res.data.notifications || []);
+        setData(res.data);
         setLoading(false); 
       })
       .catch(err => { 
@@ -102,45 +103,7 @@ export default function DashboardPage() {
       });
   }, []);
 
-  const handleMarkAsRead = async (notificationId: number) => {
-    try {
-      await markAsRead(notificationId);
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const unreadCount = notifications.filter(n => !n.is_read).length;
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success': return '✅';
-      case 'warning': return '⚠️';
-      case 'error': return '❌';
-      default: return 'ℹ️';
-    }
-  };
-
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'success': return 'var(--green)';
-      case 'warning': return 'var(--accent)';
-      case 'error': return 'var(--red)';
-      default: return 'var(--primary)';
-    }
-  };
 
   const stats = data?.counts || { leads: 0, customers: 0, openTasks: 0, completedTasks: 0, users: 0 };
   
@@ -152,6 +115,28 @@ export default function DashboardPage() {
         color: STATUS_COLORS[key] || '#8b949e'
       })) 
     : [];
+
+  // Task priority chart data
+  const priorityData = data?.taskPriorityData
+    ? Object.keys(data.taskPriorityData).map(key => ({
+        name: key.charAt(0).toUpperCase() + key.slice(1),
+        value: data.taskPriorityData[key],
+        color: PRIORITY_COLORS[key] || '#8b949e'
+      }))
+    : [];
+
+  // Task completion trend data
+  const taskTrendData = data?.taskTrend?.map((item: any) => ({
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    completed: item.completed
+  })) || [];
+
+  // Lead conversion trend data
+  const conversionData = data?.conversionTrend?.map((item: any) => ({
+    date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    converted: item.converted,
+    total: item.total
+  })) || [];
 
   return (
     <div className="dashboard-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 32, paddingBottom: 60 }}>
@@ -169,116 +154,10 @@ export default function DashboardPage() {
         </div>
         
         <div style={{ display: 'flex', gap: 12 }}>
-          {/* Notification Bell */}
-          <div style={{ position: 'relative' }}>
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="btn btn-secondary" 
-              style={{ padding: '12px', borderRadius: 12, position: 'relative' }}
-            >
-              <Bell size={16} />
-              {unreadCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: -5,
-                  right: -5,
-                  background: 'var(--red)',
-                  color: 'white',
-                  borderRadius: '50%',
-                  width: 20,
-                  height: 20,
-                  fontSize: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold'
-                }}>
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </button>
-            
-            {/* Notifications Dropdown */}
-            {showNotifications && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: 8,
-                width: 400,
-                maxHeight: 500,
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 16,
-                boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                zIndex: 1000,
-                overflow: 'hidden'
-              }}>
-                <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>Notifications</h3>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {unreadCount > 0 && (
-                      <button 
-                        onClick={handleMarkAllAsRead}
-                        style={{ fontSize: 12, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-                      >
-                        Mark all read
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => setShowNotifications(false)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                </div>
-                
-                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-                  {notifications.length === 0 ? (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-                      No notifications yet
-                    </div>
-                  ) : (
-                    notifications.map((notification) => (
-                      <div 
-                        key={notification.id}
-                        onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
-                        style={{
-                          padding: '16px 20px',
-                          borderBottom: '1px solid var(--border)',
-                          cursor: notification.is_read ? 'default' : 'pointer',
-                          background: notification.is_read ? 'transparent' : 'rgba(34,197,94,0.05)',
-                          borderLeft: notification.is_read ? 'none' : `3px solid ${getNotificationColor(notification.type)}`,
-                          opacity: notification.is_read ? 0.7 : 1
-                        }}
-                      >
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                          <span style={{ fontSize: 16 }}>{getNotificationIcon(notification.type)}</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: 'var(--text-primary)' }}>
-                              {notification.title}
-                            </div>
-                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>
-                              {notification.message}
-                            </div>
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                              {new Date(notification.created_at).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <Link to="/leads?new=1" className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: 12 }}>
+          <Link to="/leads?new=1" className="btn btn-primary" style={{ padding: '12px 24px', borderRadius: 12, boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)' }}>
             <Plus size={16} /> Create Lead
           </Link>
-          <Link to="/tasks?new=1" className="btn btn-secondary" style={{ padding: '12px 24px', borderRadius: 12 }}>
+          <Link to="/tasks?new=1" className="btn btn-secondary" style={{ padding: '12px 24px', borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
             <CheckSquare size={16} /> New Task
           </Link>
         </div>
@@ -294,14 +173,14 @@ export default function DashboardPage() {
       {/* Hero Stat Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
         {[
-          { label: 'Total Leads', val: stats.leads, icon: <Target />, color: 'var(--primary)', bg: 'rgba(34,197,94,0.1)', link: '/leads' },
-          { label: 'Contacts', val: stats.customers, icon: <Users />, color: 'var(--accent)', bg: 'rgba(245, 158, 11, 0.1)', link: '/contacts' },
-          { label: 'Open Tasks', val: stats.openTasks, icon: <CheckSquare />, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)', link: '/tasks' },
-          { label: 'Team Members', val: stats.users, icon: <Contact />, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)', link: '/users' },
+          { label: 'Total Leads', val: stats.leads, icon: <Target />, color: '#6366f1', bg: 'rgba(99, 102, 241, 0.1)', link: '/leads' },
+          { label: 'Contacts', val: stats.customers, icon: <Users />, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.1)', link: '/contacts' },
+          { label: 'Open Tasks', val: stats.openTasks, icon: <CheckSquare />, color: '#a855f7', bg: 'rgba(168, 85, 247, 0.1)', link: '/tasks' },
+          { label: 'Team Members', val: stats.users, icon: <Contact />, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)', link: '/users' },
         ].map((s, i) => (
-          <HoverCard key={i} style={{ animationDelay: `${i * 0.1}s` }} className="staggered-fade">
-            <Link to={s.link} style={{ display: 'flex', padding: 24, gap: 20, alignItems: 'center' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 14, background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <HoverCard key={i} style={{ animationDelay: `${i * 0.1}s`, border: '1px solid var(--border)', borderRadius: 20 }} className="staggered-fade">
+            <Link to={s.link} style={{ display: 'flex', padding: 24, gap: 20, alignItems: 'center', textDecoration: 'none' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 16px ${s.bg}` }}>
                 {React.cloneElement(s.icon as any, { size: 24 })}
               </div>
               <div style={{ flex: 1 }}>
@@ -319,7 +198,7 @@ export default function DashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 24, alignItems: 'stretch' }}>
         
         {/* Analytics Pipeline Chart */}
-        <HoverCard style={{ padding: 24, minHeight: 380 }} className="staggered-fade">
+        <HoverCard style={{ padding: 24, minHeight: 380, border: '1px solid var(--border)', borderRadius: 20 }} className="staggered-fade">
           <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
             <Activity size={20} color="var(--primary)" /> Lead Pipeline Distribution
           </h3>
@@ -359,7 +238,7 @@ export default function DashboardPage() {
         </HoverCard>
 
         {/* Critical Alerts panel */}
-        <HoverCard style={{ padding: 24, border: '1px solid rgba(239, 68, 68, 0.2)' }} className="staggered-fade danger-glow">
+        <HoverCard style={{ padding: 24, border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 20, background: 'rgba(239, 68, 68, 0.02)' }} className="staggered-fade danger-glow">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--red)' }}>
               <AlertCircle size={18} /> Action Required
@@ -389,11 +268,141 @@ export default function DashboardPage() {
         </HoverCard>
       </div>
 
+      {/* New Charts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 24 }}>
+        
+        {/* Task Priority Distribution */}
+        <HoverCard style={{ padding: 24, border: '1px solid var(--border)', borderRadius: 20 }} className="staggered-fade">
+          <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <CheckSquare size={20} color="#3b82f6" /> Task Priority Distribution
+          </h3>
+          <div style={{ height: 280, width: '100%', position: 'relative' }}>
+            {loading ? (
+              <div className="loading-center"><Shimmer h={200} w={200} r={100} /></div>
+            ) : priorityData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={priorityData}
+                    cx="50%" cy="50%"
+                    innerRadius={70} outerRadius={100}
+                    paddingAngle={5} dataKey="value"
+                    stroke="none"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={{ stroke: 'var(--text-muted)', strokeWidth: 1 }}
+                  >
+                    {priorityData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 12, fontWeight: 600, color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="empty-state">No task priority data.</div>
+            )}
+          </div>
+        </HoverCard>
+
+        {/* Task Completion Trend */}
+        <HoverCard style={{ padding: 24, border: '1px solid var(--border)', borderRadius: 20 }} className="staggered-fade">
+          <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <TrendingUp size={20} color="#10b981" /> Task Completion (7 Days)
+          </h3>
+          <div style={{ height: 280, width: '100%' }}>
+            {loading ? (
+              <div className="loading-center"><Shimmer h={200} w="90%" r={12} /></div>
+            ) : taskTrendData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={taskTrendData}>
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="var(--text-muted)" 
+                    style={{ fontSize: 12 }}
+                    tick={{ fill: 'var(--text-muted)' }}
+                  />
+                  <YAxis 
+                    stroke="var(--text-muted)" 
+                    style={{ fontSize: 12 }}
+                    tick={{ fill: 'var(--text-muted)' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 12, fontWeight: 600, color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                    cursor={{ fill: 'rgba(99, 102, 241, 0.1)' }}
+                  />
+                  <Bar dataKey="completed" fill="#10b981" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="empty-state">No completion data available.</div>
+            )}
+          </div>
+        </HoverCard>
+      </div>
+
+      {/* Lead Conversion Trend */}
+      <HoverCard style={{ padding: 24, border: '1px solid var(--border)', borderRadius: 20 }} className="staggered-fade">
+        <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Target size={20} color="var(--primary)" /> Lead Conversion Trend (7 Days)
+        </h3>
+        <div style={{ height: 300, width: '100%' }}>
+          {loading ? (
+            <div className="loading-center"><Shimmer h={200} w="90%" r={12} /></div>
+          ) : conversionData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={conversionData}>
+                <XAxis 
+                  dataKey="date" 
+                  stroke="var(--text-muted)" 
+                  style={{ fontSize: 12 }}
+                  tick={{ fill: 'var(--text-muted)' }}
+                />
+                <YAxis 
+                  stroke="var(--text-muted)" 
+                  style={{ fontSize: 12 }}
+                  tick={{ fill: 'var(--text-muted)' }}
+                />
+                <Tooltip 
+                  contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 12, fontWeight: 600, color: '#fff' }}
+                  itemStyle={{ color: '#fff' }}
+                />
+                <Legend 
+                  wrapperStyle={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 600 }}
+                  iconType="circle"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3} 
+                  dot={{ fill: '#3b82f6', r: 5 }}
+                  activeDot={{ r: 7 }}
+                  name="Total Leads"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="converted" 
+                  stroke="#10b981" 
+                  strokeWidth={3} 
+                  dot={{ fill: '#10b981', r: 5 }}
+                  activeDot={{ r: 7 }}
+                  name="Converted"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="empty-state">No conversion data available.</div>
+          )}
+        </div>
+      </HoverCard>
+
       {/* Recents Lists Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 24 }}>
         
         {/* Recent Leads */}
-        <HoverCard className="staggered-fade">
+        <HoverCard className="staggered-fade" style={{ border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
           <div style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
               <Target size={18} color="var(--primary)" /> Recent Leads
@@ -427,7 +436,7 @@ export default function DashboardPage() {
         </HoverCard>
 
         {/* Recent Tasks */}
-        <HoverCard className="staggered-fade">
+        <HoverCard className="staggered-fade" style={{ border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
           <div style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
             <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
               <CheckSquare size={18} color="#3b82f6" /> Recent Tasks
@@ -466,6 +475,37 @@ export default function DashboardPage() {
         .staggered-fade { opacity: 0; animation: fadeUp 0.6s ease forwards; }
         .danger-glow .hover-glow { background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%); }
         
+        .hover-card {
+          position: relative;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+        }
+        
+        .hover-card:hover {
+          border-color: var(--border-2);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(99, 102, 241, 0.1);
+        }
+        
+        .hover-card .hover-glow {
+          position: absolute;
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+          pointer-events: none;
+          transition: opacity 0.3s;
+          z-index: 0;
+        }
+        
+        .hover-card .card-content {
+          position: relative;
+          z-index: 1;
+        }
+        
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -475,6 +515,7 @@ export default function DashboardPage() {
 
         @media (max-width: 1024px) {
            .dashboard-fade-in > div:nth-child(4) { grid-template-columns: 1fr; }
+           .dashboard-fade-in > div:nth-child(5) { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>

@@ -89,6 +89,43 @@ exports.getDashboardStats = async (req, res) => {
         overdueTasksQuery += ' ORDER BY due_date ASC LIMIT 5';
         const [overdueTasks] = await db.query(overdueTasksQuery, overdueTasksParams);
 
+        // Task priority distribution
+        let taskPriorityQuery = 'SELECT priority, COUNT(*) as count FROM tasks WHERE tenant_id = ? AND status != "completed"';
+        let taskPriorityParams = [tenant_id];
+        if (isSales) {
+            taskPriorityQuery += ' AND assigned_to = ?';
+            taskPriorityParams.push(user_id);
+        }
+        taskPriorityQuery += ' GROUP BY priority';
+        const [taskPriorityDist] = await db.query(taskPriorityQuery, taskPriorityParams);
+        const taskPriorityData = {};
+        taskPriorityDist.forEach(row => { taskPriorityData[row.priority] = row.count; });
+
+        // Lead conversion trend (last 7 days)
+        let conversionTrendQuery = `SELECT DATE(created_at) as date, 
+                                    SUM(CASE WHEN status = 'converted' THEN 1 ELSE 0 END) as converted,
+                                    COUNT(*) as total
+                                    FROM leads WHERE tenant_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`;
+        let conversionTrendParams = [tenant_id];
+        if (isSales) {
+            conversionTrendQuery += ' AND assigned_to = ?';
+            conversionTrendParams.push(user_id);
+        }
+        conversionTrendQuery += ' GROUP BY DATE(created_at) ORDER BY date ASC';
+        const [conversionTrend] = await db.query(conversionTrendQuery, conversionTrendParams);
+
+        // Task completion trend (last 7 days)
+        let taskTrendQuery = `SELECT DATE(updated_at) as date, COUNT(*) as completed
+                              FROM tasks WHERE tenant_id = ? AND status = 'completed' 
+                              AND updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`;
+        let taskTrendParams = [tenant_id];
+        if (isSales) {
+            taskTrendQuery += ' AND assigned_to = ?';
+            taskTrendParams.push(user_id);
+        }
+        taskTrendQuery += ' GROUP BY DATE(updated_at) ORDER BY date ASC';
+        const [taskTrend] = await db.query(taskTrendQuery, taskTrendParams);
+
         // Get recent notifications
         const notifications = await NotificationService.getUserNotifications(tenant_id, user_id, 5, 0);
         const unreadCount = await NotificationService.getUnreadCount(tenant_id, user_id);
@@ -102,6 +139,9 @@ exports.getDashboardStats = async (req, res) => {
                 users: userCount[0].count
             },
             leadStatusDist,
+            taskPriorityData,
+            conversionTrend,
+            taskTrend,
             recentLeads,
             recentTasks,
             overdueTasks,

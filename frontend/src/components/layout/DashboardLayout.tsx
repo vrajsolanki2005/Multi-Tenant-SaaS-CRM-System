@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
 import { 
   BarChart2, 
@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
+import { getDashboardStats } from '../../api/dashboard';
+import { markAsRead, markAllAsRead } from '../../api/notifications';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Intelligence Overview',
@@ -36,8 +38,59 @@ export default function DashboardLayout() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   const title = PAGE_TITLES[pathname] ?? 'Mission Hub';
+
+  useEffect(() => {
+    getDashboardStats()
+      .then(res => {
+        setNotifications(res.data.notifications || []);
+      })
+      .catch(err => {
+        console.error('Failed to fetch notifications:', err);
+      });
+  }, []);
+
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      await markAsRead(notificationId);
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'success': return '✅';
+      case 'warning': return '⚠️';
+      case 'error': return '❌';
+      default: return 'ℹ️';
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'success': return 'var(--green)';
+      case 'warning': return 'var(--accent)';
+      case 'error': return 'var(--red)';
+      default: return 'var(--primary)';
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -68,7 +121,7 @@ export default function DashboardLayout() {
       </div>
 
       <div className="main-area">
-        <header className="topbar glass">
+        <header className="topbar glass" style={{ background: 'rgba(17, 17, 24, 0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <button 
               className="btn-icon mobile-only" 
@@ -77,7 +130,7 @@ export default function DashboardLayout() {
             >
               <Menu size={22} />
             </button>
-            <h1 className="topbar-title">{title}</h1>
+            <h1 className="topbar-title" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{title}</h1>
           </div>
           
           <div className="topbar-right">
@@ -100,39 +153,74 @@ export default function DashboardLayout() {
             <div style={{ position: 'relative' }}>
               <button className="btn-icon" style={{ position: 'relative' }} onClick={() => setShowNotifs(!showNotifs)}>
                 <Bell size={20} />
-                <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: 'var(--primary)', borderRadius: '50%', border: '2px solid var(--surface)' }} />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: 'var(--red)', borderRadius: '50%', border: '2px solid var(--surface)' }} />
+                )}
               </button>
 
               {showNotifs && (
                 <>
                   <div className="fixed-overlay" onClick={() => setShowNotifs(false)} />
-                  <div className="profile-dropdown glass dropdown-anim" style={{ width: 320, right: -40, padding: 0, overflow: 'hidden' }}>
-                     <div className="dropdown-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '16px 16px', background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="profile-dropdown glass dropdown-anim" style={{ width: 400, right: -40, padding: 0, overflow: 'hidden' }}>
+                     <div className="dropdown-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '16px 20px', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Notifications</div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          {unreadCount > 0 && (
+                            <button 
+                              onClick={handleMarkAllAsRead}
+                              style={{ fontSize: 12, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => setShowNotifs(false)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                      </div>
                      
-                     <div className="dropdown-body" style={{ maxHeight: 300, overflowY: 'auto' }}>
-                        {[
-                          { title: "New Lead Assigned", desc: "You've been assigned the Acme Corp lead.", time: "10m ago", color: "#3B82F6", unread: true },
-                          { title: "SLA Warning", desc: "Task 'Follow up' is due in 2 hours.", time: "1h ago", color: "#F59E0B", unread: true },
-                          { title: "System Update", desc: "V2.4 deployed successfully.", time: "1d ago", color: "#10B981", unread: false },
-                        ].map((n, i) => (
-                          <div key={i} style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.2s', background: n.unread ? 'rgba(59,130,246,0.05)' : 'transparent' }}
-                               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                               onMouseLeave={e => (e.currentTarget.style.background = n.unread ? 'rgba(59,130,246,0.05)' : 'transparent')}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.color }} />
-                                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{n.title}</span>
-                              </div>
-                              <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{n.time}</span>
-                            </div>
-                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', paddingLeft: 14 }}>{n.desc}</div>
+                     <div className="dropdown-body" style={{ maxHeight: 400, overflowY: 'auto' }}>
+                        {notifications.length === 0 ? (
+                          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                            No notifications yet
                           </div>
-                        ))}
-                     </div>
-                     <div style={{ padding: '12px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-                       <a href="#" style={{ fontSize: 12, color: '#00BFFF', textDecoration: 'none', fontWeight: 600 }}>Mark all as read</a>
+                        ) : (
+                          notifications.map((notification) => (
+                            <div 
+                              key={notification.id}
+                              onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
+                              style={{
+                                padding: '16px 20px',
+                                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                cursor: notification.is_read ? 'default' : 'pointer',
+                                background: notification.is_read ? 'transparent' : 'rgba(34,197,94,0.05)',
+                                borderLeft: notification.is_read ? 'none' : `3px solid ${getNotificationColor(notification.type)}`,
+                                opacity: notification.is_read ? 0.7 : 1,
+                                transition: 'background 0.2s'
+                              }}
+                              onMouseEnter={e => !notification.is_read && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                              onMouseLeave={e => !notification.is_read && (e.currentTarget.style.background = 'rgba(34,197,94,0.05)')}
+                            >
+                              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                                <span style={{ fontSize: 16 }}>{getNotificationIcon(notification.type)}</span>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: 'var(--text-primary)' }}>
+                                    {notification.title}
+                                  </div>
+                                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>
+                                    {notification.message}
+                                  </div>
+                                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                    {new Date(notification.created_at).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
                      </div>
                   </div>
                 </>
@@ -189,7 +277,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="page-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <main className="page-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'radial-gradient(ellipse at top right, rgba(99, 102, 241, 0.04), transparent 50%), radial-gradient(ellipse at bottom left, rgba(168, 85, 247, 0.03), transparent 50%)' }}>
           <Outlet />
         </main>
       </div>
@@ -219,22 +307,30 @@ export default function DashboardLayout() {
           position: absolute; top: calc(100% + 12px); right: 0;
           width: 200px; z-index: 50; border-radius: 16px;
           border: 1px solid var(--glass-border);
-          box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.6);
           padding: 8px;
+          background: rgba(17, 17, 24, 0.95);
+          backdrop-filter: blur(20px);
         }
         .dropdown-header { padding: 12px 12px 10px; border-bottom: 1px solid var(--glass-border); margin-bottom: 6px; }
         .role-chip {
            display: inline-block; padding: 2px 8px; border-radius: 6px; 
-           background: var(--primary-light); color: var(--primary);
+           background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+           color: var(--primary);
            font-size: 10px; font-weight: 800; text-transform: uppercase;
            letter-spacing: 0.05em; margin-top: 8px;
+           border: 1px solid rgba(99, 102, 241, 0.3);
         }
         .dropdown-item {
           display: flex; align-items: center; gap: 10px; padding: 10px 12px;
           border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--text-secondary);
           transition: all 0.2s; cursor: pointer; text-decoration: none; border: none; background: transparent; width: 100%; text-align: left;
         }
-        .dropdown-item:hover { background: var(--surface-2); color: var(--text-primary); }
+        .dropdown-item:hover { 
+          background: var(--surface-2); 
+          color: var(--text-primary);
+          transform: translateX(2px);
+        }
         .logout-btn { color: var(--red) !important; margin-top: 4px; }
         .logout-btn:hover { background: var(--red-bg) !important; }
         

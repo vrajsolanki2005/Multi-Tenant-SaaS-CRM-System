@@ -16,56 +16,56 @@
 :root {
   --font: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
 
-  /* Brand - Premium Green/Amber */
-  --primary: #22c55e;
-  --primary-dark: #16a34a;
-  --primary-light: rgb(0, 0, 0);
-  --accent: #f59e0b;
-  --brand-gradient: linear-gradient(135deg, #22c55e 0%, #fbbf24 50%, #f59e0b 100%);
+  /* Brand - Modern Blue/Purple */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: rgba(99, 102, 241, 0.1);
+  --accent: #8b5cf6;
+  --brand-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
 
   /* Professional Dark Neutrals */
-  --bg: #080a0f;
-  --surface: #0d1117;
-  --surface-2: #161b22;
-  --border: #21262d;
-  --border-2: #30363d;
+  --bg: #0a0a0f;
+  --surface: #111118;
+  --surface-2: #1a1a24;
+  --border: #2a2a3a;
+  --border-2: #3a3a4a;
 
   /* Sidebar (Transparent Glass) */
-  --sidebar-bg: rgba(13, 17, 23, 0.95);
-  --sidebar-text: #8b949e;
-  --sidebar-hover: #161b22;
-  --sidebar-active: #22c55e;
+  --sidebar-bg: rgba(17, 17, 24, 0.95);
+  --sidebar-text: #9ca3af;
+  --sidebar-hover: #1a1a24;
+  --sidebar-active: #6366f1;
   --sidebar-w: 260px;
 
   /* Text */
-  --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
-  --text-muted: #484f58;
+  --text-primary: #f5f5f7;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 
   /* Status colors - Professional Palette */
-  --green: #238636;
-  --green-bg: rgba(35, 134, 54, 0.15);
-  --green-border: rgba(35, 134, 54, 0.4);
-  --blue: #1f6feb;
-  --blue-bg: rgba(31, 111, 235, 0.15);
-  --blue-border: rgba(31, 111, 235, 0.4);
-  --orange: #d29922;
-  --orange-bg: rgba(210, 153, 34, 0.15);
-  --orange-border: rgba(210, 153, 34, 0.4);
-  --red: #da3633;
-  --red-bg: rgba(218, 54, 51, 0.15);
-  --red-border: rgba(218, 54, 51, 0.4);
-  --purple: #8957e5;
-  --purple-bg: rgba(137, 87, 229, 0.15);
-  --purple-border: rgba(137, 87, 229, 0.4);
+  --green: #10b981;
+  --green-bg: rgba(16, 185, 129, 0.15);
+  --green-border: rgba(16, 185, 129, 0.4);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59, 130, 246, 0.15);
+  --blue-border: rgba(59, 130, 246, 0.4);
+  --orange: #f59e0b;
+  --orange-bg: rgba(245, 158, 11, 0.15);
+  --orange-border: rgba(245, 158, 11, 0.4);
+  --red: #ef4444;
+  --red-bg: rgba(239, 68, 68, 0.15);
+  --red-border: rgba(239, 68, 68, 0.4);
+  --purple: #a855f7;
+  --purple-bg: rgba(168, 85, 247, 0.15);
+  --purple-border: rgba(168, 85, 247, 0.4);
 
   /* Radius & Glass Effects */
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 20px;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --glass-bg: rgba(13, 17, 23, 0.8);
-  --glass-border: rgba(48, 54, 61, 0.5);
+  --glass-bg: rgba(17, 17, 24, 0.8);
+  --glass-border: rgba(42, 42, 58, 0.5);
 
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
@@ -163,13 +163,13 @@ a {
 
 .btn-primary {
   background: var(--brand-gradient);
-  color: #000;
-  box-shadow: 0 8px 16px rgba(34, 197, 94, 0.2);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(34, 197, 94, 0.35);
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.45);
 }
 
 .btn-secondary {
@@ -1145,7 +1145,7 @@ tbody tr:hover {
 
 .settings-control:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .settings-label {
@@ -1178,7 +1178,7 @@ tbody tr:hover {
 
 .settings-btn.primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .settings-btn.danger {
@@ -1235,15 +1235,15 @@ tbody tr:hover {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #22c55e 0%, #fbbf24 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .bg-hero-gradient {
-  background: radial-gradient(ellipse at top, rgba(34, 197, 94, 0.15), transparent 50%),
-              radial-gradient(ellipse at bottom, rgba(251, 191, 36, 0.1), transparent 50%);
+  background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.15), transparent 50%),
+              radial-gradient(ellipse at bottom, rgba(168, 85, 247, 0.1), transparent 50%);
 }
 
 .bg-dot-pattern {
