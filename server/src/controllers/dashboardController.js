@@ -101,29 +101,51 @@ exports.getDashboardStats = async (req, res) => {
         const taskPriorityData = {};
         taskPriorityDist.forEach(row => { taskPriorityData[row.priority] = row.count; });
 
-        // Lead conversion trend (last 7 days)
-        let conversionTrendQuery = `SELECT DATE(created_at) as date, 
-                                    SUM(CASE WHEN status = 'converted' THEN 1 ELSE 0 END) as converted,
-                                    COUNT(*) as total
-                                    FROM leads WHERE tenant_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`;
+        // Lead conversion trend (last 7 days) - Generate all 7 days
+        let conversionTrendQuery = `
+            WITH RECURSIVE dates AS (
+                SELECT DATE_SUB(CURDATE(), INTERVAL 6 DAY) as date
+                UNION ALL
+                SELECT DATE_ADD(date, INTERVAL 1 DAY)
+                FROM dates
+                WHERE date < CURDATE()
+            )
+            SELECT 
+                dates.date,
+                COALESCE(SUM(CASE WHEN l.status = 'converted' THEN 1 ELSE 0 END), 0) as converted,
+                COALESCE(COUNT(l.lead_id), 0) as total
+            FROM dates
+            LEFT JOIN leads l ON DATE(l.created_at) = dates.date AND l.tenant_id = ?`;
         let conversionTrendParams = [tenant_id];
         if (isSales) {
-            conversionTrendQuery += ' AND assigned_to = ?';
+            conversionTrendQuery += ' AND l.assigned_to = ?';
             conversionTrendParams.push(user_id);
         }
-        conversionTrendQuery += ' GROUP BY DATE(created_at) ORDER BY date ASC';
+        conversionTrendQuery += ' GROUP BY dates.date ORDER BY dates.date ASC';
         const [conversionTrend] = await db.query(conversionTrendQuery, conversionTrendParams);
 
-        // Task completion trend (last 7 days)
-        let taskTrendQuery = `SELECT DATE(updated_at) as date, COUNT(*) as completed
-                              FROM tasks WHERE tenant_id = ? AND status = 'completed' 
-                              AND updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`;
+        // Task completion trend (last 7 days) - Generate all 7 days
+        let taskTrendQuery = `
+            WITH RECURSIVE dates AS (
+                SELECT DATE_SUB(CURDATE(), INTERVAL 6 DAY) as date
+                UNION ALL
+                SELECT DATE_ADD(date, INTERVAL 1 DAY)
+                FROM dates
+                WHERE date < CURDATE()
+            )
+            SELECT 
+                dates.date,
+                COALESCE(COUNT(t.task_id), 0) as completed
+            FROM dates
+            LEFT JOIN tasks t ON DATE(t.updated_at) = dates.date 
+                AND t.tenant_id = ? 
+                AND t.status = 'completed'`;
         let taskTrendParams = [tenant_id];
         if (isSales) {
-            taskTrendQuery += ' AND assigned_to = ?';
+            taskTrendQuery += ' AND t.assigned_to = ?';
             taskTrendParams.push(user_id);
         }
-        taskTrendQuery += ' GROUP BY DATE(updated_at) ORDER BY date ASC';
+        taskTrendQuery += ' GROUP BY dates.date ORDER BY dates.date ASC';
         const [taskTrend] = await db.query(taskTrendQuery, taskTrendParams);
 
         // Get recent notifications

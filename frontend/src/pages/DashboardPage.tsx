@@ -128,14 +128,14 @@ export default function DashboardPage() {
   // Task completion trend data
   const taskTrendData = data?.taskTrend?.map((item: any) => ({
     date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    completed: item.completed
+    completed: Number(item.completed) || 0
   })) || [];
 
   // Lead conversion trend data
   const conversionData = data?.conversionTrend?.map((item: any) => ({
     date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    converted: item.converted,
-    total: item.total
+    converted: Number(item.converted) || 0,
+    total: Number(item.total) || 0
   })) || [];
 
   return (
@@ -363,14 +363,17 @@ export default function DashboardPage() {
                   stroke="var(--text-muted)" 
                   style={{ fontSize: 12 }}
                   tick={{ fill: 'var(--text-muted)' }}
+                  allowDecimals={false}
                 />
                 <Tooltip 
                   contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 12, fontWeight: 600, color: '#fff' }}
                   itemStyle={{ color: '#fff' }}
+                  labelStyle={{ color: 'var(--text-muted)', marginBottom: 8 }}
                 />
                 <Legend 
-                  wrapperStyle={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 600 }}
+                  wrapperStyle={{ paddingTop: 20 }}
                   iconType="circle"
+                  formatter={(value) => <span style={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 600 }}>{value}</span>}
                 />
                 <Line 
                   type="monotone" 

@@ -267,7 +267,7 @@ export default function DashboardLayout() {
                         </Link>
                         <button className="dropdown-item logout-btn" onClick={handleLogout}>
                           <LogOut size={16} />
-                          <span>De-authenticate</span>
+                          <span>Log-Out</span>
                         </button>
                      </div>
                   </div>
