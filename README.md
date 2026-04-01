@@ -45,6 +45,23 @@ Developed a Multi-Tenant SaaS CRM system with role-based access control, tenant-
 
 ---
 
+### **Phase 5: System Enhancement & Production Readiness**
+*Duration: Week 5*
+ 
+* API Standardization & Error Handling: Standardized API response format across all endpoints; implemented global error handling middleware for centralized exception management and meaningful error responses.
+* **Improved Security:**
+   * JWT expiry handling with token refresh mechanisms.
+   * Input validation across all API endpoints to prevent malicious data injection.
+   * CORS and security headers for cross-origin request protection.
+* **Optimized Performance:**
+   * Query tuning with efficient filtering and pagination.
+   * Strategic indexing on frequently queried columns (lead_id, customer_id, status).
+   * (Optional) Redis caching for improved response times on repeated queries.
+   * (Optional) Rate limiting to prevent API abuse and ensure system stability.
+* **Milestone:** Achieved production-level backend improvements with a robust, maintainable system ready for deployment.
+
+---
+
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Vite
