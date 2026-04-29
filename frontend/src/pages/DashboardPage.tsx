@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Target, Contact, CheckSquare, Users,
-  TrendingUp, Clock, AlertCircle, Zap, ArrowRight, Activity, Plus
+  TrendingUp, Clock, AlertCircle, Zap, ArrowRight, Activity, Plus, ClipboardList
 } from 'lucide-react';
 import { getDashboardStats } from '../api/dashboard';
 import { useAuth } from '../context/AuthContext';
@@ -461,7 +461,7 @@ export default function DashboardPage() {
                       <div style={{ width: 10, height: 10, borderRadius: '50%', background: t.priority === 'high' || t.priority === 'urgent' ? 'var(--red)' : '#3b82f6', boxShadow: `0 0 10px ${t.priority === 'urgent' ? 'var(--red)' : 'transparent'}` }} />
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)' }}>{t.task_name}</div>
-                        {t.lead_title && <div style={{ fontSize: 11, color: 'var(--primary)' }}>📋 {t.lead_title}</div>}
+                        {t.lead_title && <div style={{ fontSize: 11, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: 4 }}><ClipboardList size={12} /> {t.lead_title}</div>}
                       </div>
                     </div>
                     <div className="badge" style={{ background: 'var(--surface-2)', fontSize: 10, padding: '4px 10px' }}>{t.status}</div>

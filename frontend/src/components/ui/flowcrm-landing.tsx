@@ -3,7 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { MeshDistortMaterial, Float, PerspectiveCamera, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { Link } from "react-router-dom";
-import { Box, Settings, Lock, Sparkles, Search } from "lucide-react";
+import { Box, Settings, Lock, Sparkles, Search, Zap, CheckCircle, Crown, Shield, Clipboard, Briefcase, Inbox, SearchIcon, Target, Cog, CheckSquare } from "lucide-react";
 import { GlowingEffect } from "./glowing-effect";
 
 /* =========================
@@ -85,9 +85,6 @@ export default function FlowCRMLanding() {
       {/* ─── NAVBAR ─────────────────────────────────── */}
       <nav className={`fixed top-0 left-0 right-0 z-40 px-6 md:px-16 py-4 flex items-center justify-between transition-all duration-300 ${navScrolled ? "backdrop-blur-xl bg-black/70 border-b border-white/5" : ""}`}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-            <div className="w-2 h-2 bg-white rounded-full" />
-          </div>
           <span className="text-xl font-black tracking-tight">Flow<span style={{ color: "#00BFFF" }}>CRM</span></span>
         </div>
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
@@ -109,7 +106,7 @@ export default function FlowCRMLanding() {
         <div className="relative z-10 w-full grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border border-indigo-500/30 bg-indigo-500/10 text-indigo-300">
-              <span style={{ color: "#00BFFF" }}>✦</span> New: Real-time request tracking is now live
+              <Sparkles className="w-3 h-3" style={{ color: "#00BFFF" }} /> New: Real-time request tracking is now live
             </div>
             <h1 className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight">
               Manage<br />
@@ -129,7 +126,7 @@ export default function FlowCRMLanding() {
             </div>
             <div className="flex gap-6 flex-wrap text-sm">
               {["99.9% Uptime", "SOC2 Certified", "GDPR Ready"].map(t => (
-                <span key={t} className="flex items-center gap-2 text-zinc-500"><span className="font-bold" style={{ color: "#00BFFF" }}>✓</span> {t}</span>
+                <span key={t} className="flex items-center gap-2 text-zinc-500"><CheckCircle className="w-4 h-4 font-bold" style={{ color: "#00BFFF" }} /> {t}</span>
               ))}
             </div>
           </div>
@@ -214,7 +211,7 @@ export default function FlowCRMLanding() {
             {/* Hub center */}
             <div className="flex flex-col items-center mb-12">
               <div className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center border mb-3" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.5)", boxShadow: "0 0 40px rgba(99,102,241,0.25)" }}>
-                <span className="text-2xl">⚡</span>
+                <Zap className="w-8 h-8 text-indigo-400" />
               </div>
               <span className="text-lg font-black tracking-tight">Flow<span style={{ color: "#00BFFF" }}>CRM</span></span>
               <span className="text-zinc-600 text-xs mt-1">Central Request Engine</span>
@@ -226,16 +223,16 @@ export default function FlowCRMLanding() {
             {/* Role Cards Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { role: "SuperAdmin", icon: "👑", color: "#f59e0b", desc: "Full system control. Manages organizations, billing, global settings, and cross-tenant audit logs.", perms: ["All permissions", "Tenant management", "Global audit log"] },
-                { role: "Admin", icon: "🛡️", color: "#3B82F6", desc: "Controls their organization's users, workflows, and configurations without cross-tenant access.", perms: ["User management", "Org configuration", "All reports"] },
-                { role: "Manager", icon: "📋", color: "#a855f7", desc: "Assigns and monitors team workloads, reviews KPIs, and escalates critical requests in real-time.", perms: ["Assign requests", "View team metrics", "Escalation control"] },
-                { role: "Sales", icon: "💼", color: "#22c55e", desc: "Manages their personal lead pipeline, contacts customers, and logs updates on active requests.", perms: ["Own requests", "Lead management", "Customer contact"] },
+                { role: "SuperAdmin", icon: Crown, color: "#f59e0b", desc: "Full system control. Manages organizations, billing, global settings, and cross-tenant audit logs.", perms: ["All permissions", "Tenant management", "Global audit log"] },
+                { role: "Admin", icon: Shield, color: "#3B82F6", desc: "Controls their organization's users, workflows, and configurations without cross-tenant access.", perms: ["User management", "Org configuration", "All reports"] },
+                { role: "Manager", icon: Clipboard, color: "#a855f7", desc: "Assigns and monitors team workloads, reviews KPIs, and escalates critical requests in real-time.", perms: ["Assign requests", "View team metrics", "Escalation control"] },
+                { role: "Sales", icon: Briefcase, color: "#22c55e", desc: "Manages their personal lead pipeline, contacts customers, and logs updates on active requests.", perms: ["Own requests", "Lead management", "Customer contact"] },
               ].map(n => (
                 <div key={n.role} className="p-5 rounded-2xl border flex flex-col gap-3 transition-all hover:-translate-y-1 duration-200 group" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${n.color}22` }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = n.color + "55"; (e.currentTarget as HTMLElement).style.boxShadow = `0 0 20px ${n.color}11`; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = n.color + "22"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">{n.icon}</span>
+                    <n.icon className="w-5 h-5" style={{ color: n.color }} />
                     <span className="font-bold" style={{ color: n.color }}>{n.role}</span>
                   </div>
                   <p className="text-zinc-500 text-xs leading-relaxed">{n.desc}</p>
@@ -256,16 +253,16 @@ export default function FlowCRMLanding() {
             <h3 className="text-xl font-black mb-8 text-center text-zinc-300">Request Lifecycle</h3>
             <div className="flex flex-col md:flex-row items-center gap-0">
               {[
-                { label: "Intake", icon: "📥", color: "#00BFFF" },
-                { label: "Triage", icon: "🔍", color: "#6366f1" },
-                { label: "Assign", icon: "🎯", color: "#a855f7" },
-                { label: "Execute", icon: "⚙️", color: "#f59e0b" },
-                { label: "Resolve", icon: "✅", color: "#22c55e" },
+                { label: "Intake", icon: Inbox, color: "#00BFFF" },
+                { label: "Triage", icon: SearchIcon, color: "#6366f1" },
+                { label: "Assign", icon: Target, color: "#a855f7" },
+                { label: "Execute", icon: Cog, color: "#f59e0b" },
+                { label: "Resolve", icon: CheckSquare, color: "#22c55e" },
               ].map((s, i, arr) => (
                 <React.Fragment key={s.label}>
                   <div className="flex flex-col items-center gap-2 flex-1">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center border text-2xl" style={{ background: `${s.color}15`, border: `1px solid ${s.color}40` }}>
-                      {s.icon}
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center border" style={{ background: `${s.color}15`, border: `1px solid ${s.color}40` }}>
+                      <s.icon className="w-6 h-6" style={{ color: s.color }} />
                     </div>
                     <span className="text-xs font-bold" style={{ color: s.color }}>{s.label}</span>
                   </div>
@@ -347,7 +344,7 @@ export default function FlowCRMLanding() {
                   <p className="text-zinc-500 text-sm leading-relaxed">{p.desc}</p>
                 </div>
                 <ul className="space-y-3">
-                  {p.features.map(f => <li key={f} className="flex items-center gap-2 text-sm text-zinc-300"><span style={{ color: "#00BFFF" }}>✓</span>{f}</li>)}
+                  {p.features.map(f => <li key={f} className="flex items-center gap-2 text-sm text-zinc-300"><CheckCircle className="w-4 h-4" style={{ color: "#00BFFF" }} />{f}</li>)}
                 </ul>
                 <Link to="/register" className="block w-full py-3 rounded-xl font-bold text-center text-sm transition-all hover:opacity-90"
                   style={p.highlight ? { background: "#00BFFF", color: "#000", boxShadow: "0 0 20px rgba(0,191,255,0.3)" } : { background: "rgba(255,255,255,0.08)", color: "#fff", border: "1px solid rgba(255,255,255,0.12)" }}>
@@ -365,7 +362,6 @@ export default function FlowCRMLanding() {
         <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center"><div className="w-2 h-2 bg-white rounded-full" /></div>
               <span className="text-xl font-black">Flow<span style={{ color: "#00BFFF" }}>CRM</span></span>
             </div>
             <p className="text-zinc-500 text-sm max-w-xs">The operating system for client service teams. Built for clarity, speed, and scale.</p>

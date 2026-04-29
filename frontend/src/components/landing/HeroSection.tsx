@@ -1,5 +1,5 @@
 import { motion, useInView } from "framer-motion";
-import { ArrowRight, Play, CheckCircle2, ClipboardCheck, Users, Building2 } from "lucide-react";
+import { ArrowRight, Play, CheckCircle2, ClipboardCheck, Users, Building2, User, Shield, Clipboard, Briefcase, Inbox } from "lucide-react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { HoverActionButton } from "./ui/hover-button-1";
 import { getLandingSection } from "../../api/landing";
@@ -15,11 +15,11 @@ const fadeUp = {
 };
 
 const roles = [
-  { icon: "👤", label: "Client",   color: "from-blue-600 to-blue-700",    glow: "shadow-blue-900",   cls: "animate-float" },
-  { icon: "🛡️", label: "Admin",    color: "from-violet-600 to-violet-700", glow: "shadow-violet-900", cls: "animate-float-delay" },
-  { icon: "📋", label: "Manager",  color: "from-emerald-600 to-emerald-700", glow: "shadow-emerald-900", cls: "animate-float" },
-  { icon: "💼", label: "Sales",    color: "from-orange-600 to-orange-700", glow: "shadow-orange-900", cls: "animate-float-delay-2" },
-  { icon: "📩", label: "Requests", color: "from-pink-600 to-pink-700",    glow: "shadow-pink-900",   cls: "animate-float-delay" },
+  { icon: User, label: "Client",   color: "from-blue-600 to-blue-700",    glow: "shadow-blue-900",   cls: "animate-float" },
+  { icon: Shield, label: "Admin",    color: "from-violet-600 to-violet-700", glow: "shadow-violet-900", cls: "animate-float-delay" },
+  { icon: Clipboard, label: "Manager",  color: "from-emerald-600 to-emerald-700", glow: "shadow-emerald-900", cls: "animate-float" },
+  { icon: Briefcase, label: "Sales",    color: "from-orange-600 to-orange-700", glow: "shadow-orange-900", cls: "animate-float-delay-2" },
+  { icon: Inbox, label: "Requests", color: "from-pink-600 to-pink-700",    glow: "shadow-pink-900",   cls: "animate-float-delay" },
 ];
 
 const badges = ["99.9% Uptime SLA", "SOC2 Certified", "GDPR Compliant"];
@@ -215,7 +215,7 @@ export default function HeroSection() {
                       style={{ left: `${50 + 42 * Math.cos(a)}%`, top: `${50 + 42 * Math.sin(a)}%`, transform: "translate(-50%,-50%)" }}
                     >
                       <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${role.color} shadow-lg ${role.glow} flex flex-col items-center justify-center text-white border border-white/10`}>
-                        <span className="text-xl">{role.icon}</span>
+                        <role.icon className="w-5 h-5" />
                         <span className="text-[8px] font-bold mt-0.5">{role.label}</span>
                       </div>
                     </div>

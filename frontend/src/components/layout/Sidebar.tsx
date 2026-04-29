@@ -29,10 +29,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
   return (
     <aside className="sidebar" style={{ background: 'rgba(17, 17, 24, 0.98)', backdropFilter: 'blur(20px)', borderRight: '1px solid var(--border)' }}>
       {/* Logo */}
-      <div className="sidebar-logo" style={{ borderBottom: '1px solid var(--border)', paddingBottom: 18 }}>
-        <div className="sidebar-logo-icon" style={{ background: 'var(--brand-gradient)', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)' }}>
-          <Zap size={18} color="#fff" strokeWidth={2.5} />
-        </div>
+      <div className="sidebar-logo" style={{ borderBottom: '2px solid var(--border)', paddingBottom: 18 }}>
+        
         <span className="sidebar-logo-text" style={{ background: 'var(--brand-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>FlowCRM</span>
       </div>
 

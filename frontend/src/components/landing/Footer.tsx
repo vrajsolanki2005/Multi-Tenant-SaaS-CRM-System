@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { Zap, Twitter, Linkedin, Github, Youtube } from "lucide-react";
 
 const footerLinks: Record<string, { label: string; href: string }[]> = {
   Product:   [{ label:"Features",href:"#features" },{ label:"Pricing",href:"#pricing" }],
@@ -58,14 +58,20 @@ export default function Footer() {
           </div>
           
           <div className="flex items-center gap-3">
-            {["𝕏","in","𝔾","◻"].map((icon,i) => (
+            {[
+              { icon: Twitter, label: "Twitter" },
+              { icon: Linkedin, label: "LinkedIn" },
+              { icon: Github, label: "GitHub" },
+              { icon: Youtube, label: "YouTube" },
+            ].map((social, i) => (
               <a key={i} href="#"
-                className="text-[11px] transition-colors"
+                className="transition-colors"
                 style={{ color:"#484f58" }}
                 onMouseEnter={e=>{ (e.currentTarget as HTMLElement).style.color="#f0f6fc"; }}
                 onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.color="#484f58"; }}
+                aria-label={social.label}
               >
-                {icon}
+                <social.icon className="w-4 h-4" />
               </a>
             ))}
           </div>
