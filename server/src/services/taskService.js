@@ -65,7 +65,8 @@ exports.getTasks = async (tenant_id, filters = {}, user_id = null, role = null) 
             query += ' AND t.due_date < NOW() AND t.status != "completed"';
         }
         
-        query += ` ORDER BY t.priority DESC, t.due_date ASC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
+        query += ' ORDER BY t.priority DESC, t.due_date ASC LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
         
         const [rows] = await conn.query(query, params);
         return rows;

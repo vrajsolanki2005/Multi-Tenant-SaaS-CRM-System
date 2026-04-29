@@ -16,7 +16,13 @@ exports.authMiddleware = (req, res, next) => {
     }
     
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'gemini');
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret || jwtSecret === 'gemini' || jwtSecret === 'CHANGE_THIS_TO_SECURE_RANDOM_STRING_MIN_32_CHARS') {
+            console.error('CRITICAL SECURITY ERROR: JWT_SECRET not properly configured!');
+            return res.status(500).json({ message: 'Server configuration error' });
+        }
+        
+        const decoded = jwt.verify(token, jwtSecret);
         
         // Validate session
         if (decoded.session_id && !sessionService.validateSession(decoded.session_id)) {

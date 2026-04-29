@@ -98,6 +98,17 @@ frontend/
 
 ## Getting Started
 
+### ⚠️ CRITICAL: Security Setup Required
+
+**Before running the application, you MUST generate a secure JWT secret:**
+
+```bash
+cd server
+node generate-jwt-secret.js
+```
+
+Copy the generated secret to your `.env` file. See [SECURITY_FIXES.md](SECURITY_FIXES.md) for details.
+
 ### 🐳 Docker Deployment (Recommended)
 
 The easiest way to run the entire application:
@@ -191,6 +202,7 @@ npm run dev
 
 ## API Documentation
 
+- **Security Fixes**: See [SECURITY_FIXES.md](SECURITY_FIXES.md) ⚠️ **READ THIS FIRST**
 - **Integration Guide**: See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
 - **API Reference**: See [API_REFERENCE.md](API_REFERENCE.md)
 - **User API**: See [docs/USER_API.md](docs/USER_API.md)
@@ -198,11 +210,16 @@ npm run dev
 
 ## Security Features
 
-- SQL injection prevention (parameterized queries)
+- ✅ SQL injection prevention (parameterized queries) - **FIXED**
+- ✅ Rate limiting on authentication endpoints - **FIXED**
+- ✅ Secure JWT secret enforcement - **FIXED**
+- ✅ Global error handler - **FIXED**
 - XSS prevention (input sanitization)
 - Password hashing with bcrypt
-- JWT token authentication
+- JWT token authentication with session management
 - Role-based access control
 - Tenant isolation
 - Input validation on all endpoints
-- Rate limiting support
+- Environment variable validation
+
+**See [SECURITY_FIXES.md](SECURITY_FIXES.md) for details on recent critical security updates.**

@@ -44,7 +44,8 @@ exports.getLeads = async (tenant_id, filters, user_id = null, role = null) => {
             params.push(status);
         }
         
-        query += ` ORDER BY created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
+        query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
         
         const [result] = await conn.query(query, params);
         return result;

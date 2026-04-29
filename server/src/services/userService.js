@@ -61,7 +61,8 @@ exports.getAllUsers = async (tenant_id, filters = {}) => {
     const [countResult] = await db.execute(countQuery, params);
     const total = countResult[0].total;
     
-    query += ` ORDER BY created_at DESC LIMIT ${limitNum} OFFSET ${offset}`;
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limitNum, offset);
     
     const [users] = await db.execute(query, params);
     

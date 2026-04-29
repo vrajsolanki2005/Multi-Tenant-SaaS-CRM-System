@@ -41,4 +41,48 @@ app.get('/api/health', (req, res) => {
     res.json({ message: 'Server is running!' });
 });
 
+// Global error handler (must be last)
+app.use((err, req, res, next) => {
+    console.error('Global Error Handler:', err);
+    
+    // Default error status and message
+    const statusCode = err.statusCode || err.status || 500;
+    const message = err.message || 'Internal Server Error';
+    
+    // Don't leak stack traces in production
+    const response = {
+        success: false,
+        message: message,
+        ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+    };
+    
+    // Handle specific error types
+    if (err.code === 'ER_DUP_ENTRY') {
+        response.message = 'Duplicate entry: Resource already exists';
+        return res.status(409).json(response);
+    }
+    
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+        response.message = 'Invalid reference: Related resource does not exist';
+        return res.status(400).json(response);
+    }
+    
+    if (err.name === 'ValidationError') {
+        return res.status(400).json(response);
+    }
+    
+    if (err.name === 'JsonWebTokenError') {
+        response.message = 'Invalid authentication token';
+        return res.status(401).json(response);
+    }
+    
+    if (err.name === 'TokenExpiredError') {
+        response.message = 'Authentication token expired';
+        return res.status(401).json(response);
+    }
+    
+    // Generic error response
+    res.status(statusCode).json(response);
+});
+
 module.exports = app;

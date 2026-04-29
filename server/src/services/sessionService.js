@@ -8,6 +8,12 @@ class SessionService {
     // Create session with unique identifier
     createSession(userId, tenantId, userRole, userName, userEmail) {
         const sessionId = this.generateSessionId();
+        const jwtSecret = process.env.JWT_SECRET;
+        
+        if (!jwtSecret || jwtSecret === 'gemini' || jwtSecret === 'CHANGE_THIS_TO_SECURE_RANDOM_STRING_MIN_32_CHARS') {
+            throw new Error('JWT_SECRET must be configured with a secure random string');
+        }
+        
         const token = jwt.sign(
             { 
                 user_id: userId, 
@@ -17,7 +23,7 @@ class SessionService {
                 user_email: userEmail,
                 session_id: sessionId
             },
-            process.env.JWT_SECRET || 'gemini',
+            jwtSecret,
             { expiresIn: '24h' }
         );
 
