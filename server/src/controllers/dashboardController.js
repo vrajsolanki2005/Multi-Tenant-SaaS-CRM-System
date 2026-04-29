@@ -89,8 +89,8 @@ exports.getDashboardStats = async (req, res) => {
         overdueTasksQuery += ' ORDER BY due_date ASC LIMIT 5';
         const [overdueTasks] = await db.query(overdueTasksQuery, overdueTasksParams);
 
-        // Task priority distribution
-        let taskPriorityQuery = 'SELECT priority, COUNT(*) as count FROM tasks WHERE tenant_id = ? AND status != "completed"';
+        // Task priority distribution - Include ALL tasks
+        let taskPriorityQuery = 'SELECT priority, COUNT(*) as count FROM tasks WHERE tenant_id = ?';
         let taskPriorityParams = [tenant_id];
         if (isSales) {
             taskPriorityQuery += ' AND assigned_to = ?';
@@ -147,6 +147,9 @@ exports.getDashboardStats = async (req, res) => {
         }
         taskTrendQuery += ' GROUP BY dates.date ORDER BY dates.date ASC';
         const [taskTrend] = await db.query(taskTrendQuery, taskTrendParams);
+
+        console.log('Task Priority Distribution Query Result:', taskPriorityDist);
+        console.log('Task Priority Data Object:', taskPriorityData);
 
         // Get recent notifications
         const notifications = await NotificationService.getUserNotifications(tenant_id, user_id, 5, 0);

@@ -92,6 +92,8 @@ export default function DashboardPage() {
   useEffect(() => {
     getDashboardStats()
       .then(res => { 
+        console.log('Dashboard API Response:', res.data);
+        console.log('Task Priority Data:', res.data.taskPriorityData);
         setData(res.data);
         setLoading(false); 
       })
@@ -124,6 +126,8 @@ export default function DashboardPage() {
         color: PRIORITY_COLORS[key] || '#8b949e'
       }))
     : [];
+
+  console.log('Priority Data for Chart:', priorityData);
 
   // Task completion trend data
   const taskTrendData = data?.taskTrend?.map((item: any) => ({
