@@ -1,11 +1,11 @@
 const db = require('../config/db');
+const { invalidateCache } = require('../middlewares/cache');
 
 exports.createLead = async (tenant_id, created_by, data) => {
     const conn = await db.getConnection();
     try {
         await conn.beginTransaction();
         
-        // Use assigned_to from data if provided, otherwise set to null (not created_by)
         const assignedTo = data.assigned_to !== undefined ? data.assigned_to : null;
         
         console.log('LeadService - Creating lead with assigned_to:', assignedTo);
@@ -15,6 +15,7 @@ exports.createLead = async (tenant_id, created_by, data) => {
             [tenant_id, data.title, data.status || 'new', data.value, data.customer_id, assignedTo]
         );
         await conn.commit();
+        await invalidateCache(tenant_id, '/api/leads*');
         return { lead_id: result.insertId, ...data, assigned_to: assignedTo };
     } catch (err) {
         await conn.rollback();
@@ -82,7 +83,6 @@ exports.updateLead = async (tenant_id, lead_id, data, user_id = null, role = nul
     try {
         await conn.beginTransaction();
         
-        // Check if lead is converted/closed and trying to change status
         if (data.status) {
             const [currentLead] = await conn.execute(
                 'SELECT status FROM leads WHERE lead_id = ? AND tenant_id = ?',
@@ -127,7 +127,6 @@ exports.updateLead = async (tenant_id, lead_id, data, user_id = null, role = nul
         
         let query = `UPDATE leads SET ${updates.join(', ')} WHERE tenant_id = ? AND lead_id = ?`;
         
-        // Sales users can only update leads assigned to them
         if (role === 'sales' && user_id) {
             query += ' AND assigned_to = ?';
             values.push(user_id);
@@ -136,6 +135,7 @@ exports.updateLead = async (tenant_id, lead_id, data, user_id = null, role = nul
         const [result] = await conn.execute(query, values);
         
         await conn.commit();
+        await invalidateCache(tenant_id, '/api/leads*');
         return result.affectedRows === 0 ? null : { lead_id, ...data };
     } catch (err) {
         await conn.rollback();
@@ -154,6 +154,7 @@ exports.deleteLead = async (tenant_id, lead_id) => {
             [tenant_id, lead_id]
         );
         await conn.commit();
+        await invalidateCache(tenant_id, '/api/leads*');
         return result.affectedRows === 0 ? null : true;
     } catch (err) {
         await conn.rollback();
