@@ -1,5 +1,25 @@
 # Multi-Tenant SaaS CRM System
 
+<div align="center">
+
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat&logo=node.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat&logo=typescript&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=flat&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat)
+
+**Enterprise-grade Multi-Tenant CRM with Role-Based Access Control, Redis Caching, and Docker Deployment**
+
+[Features](#features) • [Tech Stack](#tech-stack) • [Quick Start](#getting-started) • [Documentation](#documentation) • [Architecture](#project-structure)
+
+</div>
+
+---
+
+## 📋 Overview
+
 Developed a Multi-Tenant SaaS CRM system with role-based access control, tenant-isolated relational database design, workflow management, and production-ready architecture using MERN stack and MySQL.
 
 ## 🛠 Development Roadmap & Sprint Progress
@@ -335,3 +355,5 @@ node generate-jwt-secret.js       # Generate JWT secret
 redis-cli monitor                 # Monitor cache
 redis-cli FLUSHALL                # Clear cache
 ```
+
+Building with ❤️ by @Vraj_Solanki
