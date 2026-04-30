@@ -48,7 +48,7 @@ Developed a Multi-Tenant SaaS CRM system with role-based access control, tenant-
 ### **Phase 5: System Enhancement & Production Readiness**
 *Duration: Week 5*
  
-* API Standardization & Error Handling: Standardized API response format across all endpoints; implemented global error handling middleware for centralized exception management and meaningful error responses.
+* **API Standardization & Error Handling:** Standardized API response format across all endpoints; implemented global error handling middleware for centralized exception management and meaningful error responses.
 * **Improved Security:**
    * JWT expiry handling with token refresh mechanisms.
    * Input validation across all API endpoints to prevent malicious data injection.
@@ -56,22 +56,41 @@ Developed a Multi-Tenant SaaS CRM system with role-based access control, tenant-
 * **Optimized Performance:**
    * Query tuning with efficient filtering and pagination.
    * Strategic indexing on frequently queried columns (lead_id, customer_id, status).
-   * (Optional) Redis caching for improved response times on repeated queries.
-   * (Optional) Rate limiting to prevent API abuse and ensure system stability.
+   * Rate limiting to prevent API abuse and ensure system stability.
 * **Milestone:** Achieved production-level backend improvements with a robust, maintainable system ready for deployment.
+
+---
+
+### **Phase 6: Redis Caching & Docker Deployment**
+*Duration: Week 6*
+ 
+* **Redis Caching Implementation:**
+   * Integrated Redis 7 for high-performance caching layer.
+   * Implemented tenant-isolated cache keys to maintain multi-tenant data separation.
+   * Built automatic cache invalidation on CREATE/UPDATE/DELETE operations.
+   * Applied 5-minute TTL (Time-To-Live) for optimal cache freshness.
+   * Achieved sub-100ms response times on cached endpoints.
+* **Docker Containerization:**
+   * Created multi-stage Dockerfile for frontend with Nginx production server.
+   * Built optimized backend Dockerfile with health checks and wait logic.
+   * Configured Docker Compose orchestration for MySQL, Redis, Backend, and Frontend.
+   * Implemented Nginx reverse proxy for API routing and static file serving.
+   * Established persistent volumes for MySQL and Redis data.
+* **Milestone:** Production-ready deployment with containerized architecture and performance-optimized caching system.
 
 ---
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, Vite
+- **Frontend**: React, TypeScript, Vite, TailwindCSS
 - **Backend**: Node.js, Express.js
-- **Database**: MySQL
+- **Database**: MySQL 8.0
+- **Cache**: Redis 7
 - **Authentication**: JWT (JSON Web Tokens)
 - **Validation**: Express-validator
 - **Architecture**: MVC Pattern
-- **UI**: Custom CSS with modern design system
 - **Deployment**: Docker & Docker Compose
+- **Web Server**: Nginx (Production)
 
 ## Project Structure
 
@@ -80,12 +99,14 @@ server/
 ├── database/          # SQL schemas and migrations
 ├── docs/             # API documentation
 ├── src/
-│   ├── config/       # Database and app configuration
+│   ├── config/       # Database, Redis, and app configuration
 │   ├── controllers/  # Request handlers
-│   ├── middlewares/  # Auth, validation, and RBAC middleware
+│   ├── middlewares/  # Auth, validation, RBAC, and cache middleware
 │   ├── routes/       # API routes
 │   ├── services/     # Business logic
 │   └── app.js        # Express app setup
+├── Dockerfile        # Backend container
+└── docker-entrypoint.sh  # Startup script
 
 frontend/
 ├── src/
@@ -94,6 +115,10 @@ frontend/
 │   ├── context/      # React context (Auth)
 │   ├── pages/        # Page components
 │   └── App.tsx       # Main app component
+├── Dockerfile        # Frontend container
+└── nginx.conf        # Nginx configuration
+
+docker-compose.yml    # Service orchestration
 ```
 
 ## Getting Started
@@ -109,21 +134,59 @@ node generate-jwt-secret.js
 
 Copy the generated secret to your `.env` file. See [SECURITY_FIXES.md](SECURITY_FIXES.md) for details.
 
+### 🎯 Quick Start for Live Demo
+
+**Want to present this project? It's ready!**
+
+```bash
+# One-click startup (Windows)
+START-LIVE-DEMO.bat
+
+# Or manually:
+cd server && npm start
+cd frontend && npm run dev
+```
+
+**Demo Accounts:**
+- Acme Admin: `admin@acme.com` / `Demo@123`
+- TechCorp Admin: `admin@techcorp.com` / `Demo@123`
+
+📖 **See [LIVE-DEMO-GUIDE.md](LIVE-DEMO-GUIDE.md) for complete presentation script**
+
 ### 🐳 Docker Deployment (Recommended)
 
 The easiest way to run the entire application:
 
 ```bash
-# Start all services (MySQL, Backend, Frontend)
+# 1. Generate JWT Secret
+cd server
+node generate-jwt-secret.js
+
+# 2. Add secret to root .env file
+# Edit .env: JWT_SECRET=your_generated_secret
+
+# 3. Start all services (MySQL, Redis, Backend, Frontend)
+cd ..
 docker-compose up -d
 
-# Access the application
+# 4. Access the application
 open http://localhost
 ```
+
+**Services Started:**
+- Frontend: http://localhost (port 80)
+- Backend API: http://localhost:3000
+- MySQL: localhost:3306
+- Redis: localhost:6379
 
 For detailed Docker instructions, see [DOCKER_GUIDE.md](DOCKER_GUIDE.md)
 
 ### Manual Setup
+
+#### Prerequisites
+- Node.js 18+
+- MySQL 8.0
+- Redis 7 (optional for caching)
 
 #### Backend Setup
 
@@ -133,14 +196,30 @@ cd server
 npm install
 ```
 
-2. Set up environment variables in `server/.env`
+2. Set up environment variables in `server/.env`:
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=saas_crm
+DB_PORT=3306
+JWT_SECRET=your_generated_secret
+REDIS_HOST=localhost
+REDIS_PORT=6379
+NODE_ENV=development
+```
 
 3. Initialize database:
 ```bash
 mysql -u root -p < database/create_db.sql
 ```
 
-4. Start server:
+4. Start Redis (optional):
+```bash
+redis-server
+```
+
+5. Start server:
 ```bash
 npm start
 # Server runs on http://localhost:3000
@@ -173,6 +252,8 @@ npm run dev
 - Token verification middleware
 - Real-time dashboard statistics
 - Responsive modern UI
+- ✅ **Redis caching** with tenant isolation
+- ✅ **Docker containerization** for easy deployment
 
 ### Frontend Features
 - ✅ Authentication (Login/Register)
@@ -191,17 +272,18 @@ npm run dev
 - ✅ Error handling
 - ✅ Toast notifications
 
-### User Management API
-- ✅ Input validation & sanitization
-- ✅ Pagination & filtering
-- ✅ Search functionality
-- ✅ Password strength enforcement
-- ✅ Duplicate prevention
-- ✅ Self-deletion protection
-- ✅ Status management (active/inactive)
+### Performance Features
+- ✅ Redis caching (5-minute TTL)
+- ✅ Tenant-isolated cache keys
+- ✅ Automatic cache invalidation
+- ✅ Database indexing on critical columns
+- ✅ Query optimization with pagination
+- ✅ Sub-100ms response times
 
-## API Documentation
+## Documentation
 
+- **Docker Guide**: See [DOCKER_GUIDE.md](DOCKER_GUIDE.md) 🐳 **Deployment Instructions**
+- **Redis Guide**: See [REDIS_GUIDE.md](REDIS_GUIDE.md) ⚡ **Caching Implementation**
 - **Security Fixes**: See [SECURITY_FIXES.md](SECURITY_FIXES.md) ⚠️ **READ THIS FIRST**
 - **Integration Guide**: See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
 - **API Reference**: See [API_REFERENCE.md](API_REFERENCE.md)
@@ -210,16 +292,46 @@ npm run dev
 
 ## Security Features
 
-- ✅ SQL injection prevention (parameterized queries) - **FIXED**
-- ✅ Rate limiting on authentication endpoints - **FIXED**
-- ✅ Secure JWT secret enforcement - **FIXED**
-- ✅ Global error handler - **FIXED**
-- XSS prevention (input sanitization)
-- Password hashing with bcrypt
-- JWT token authentication with session management
-- Role-based access control
-- Tenant isolation
-- Input validation on all endpoints
-- Environment variable validation
+- ✅ SQL injection prevention (parameterized queries)
+- ✅ Rate limiting on authentication endpoints
+- ✅ Secure JWT secret enforcement
+- ✅ Global error handler
+- ✅ XSS prevention (input sanitization)
+- ✅ Password hashing with bcrypt
+- ✅ JWT token authentication with session management
+- ✅ Role-based access control
+- ✅ Tenant isolation (data & cache)
+- ✅ Input validation on all endpoints
+- ✅ Environment variable validation
+- ✅ CORS and security headers
 
 **See [SECURITY_FIXES.md](SECURITY_FIXES.md) for details on recent critical security updates.**
+
+## Performance Optimizations
+
+- ✅ Redis caching with automatic invalidation
+- ✅ Tenant-isolated cache keys
+- ✅ Strategic database indexing
+- ✅ Connection pooling (MySQL)
+- ✅ Query optimization with pagination
+- ✅ Docker multi-stage builds
+- ✅ Nginx static file serving
+
+## Quick Commands
+
+```bash
+# Docker
+docker-compose up -d              # Start all services
+docker-compose logs -f            # View logs
+docker-compose down               # Stop services
+docker-compose down -v            # Reset database
+
+# Development
+npm run dev                       # Start dev server
+npm start                         # Start production server
+node generate-jwt-secret.js       # Generate JWT secret
+
+# Redis
+redis-cli monitor                 # Monitor cache
+redis-cli FLUSHALL                # Clear cache
+```

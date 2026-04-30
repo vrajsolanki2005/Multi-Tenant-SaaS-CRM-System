@@ -32,16 +32,11 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
-API_REFERENCE.md
-ARCHITECTURE.md
-INTEGRATION_GUIDE.md
 
-# Docker
-Docker*
-docker-compose*.yml
-.dockerignore
-nginx.conf
+# Docker volumes and data
+docker-compose.override.yml
+.docker/
 
-#diagrams
+# Diagrams
 diagrams/
 

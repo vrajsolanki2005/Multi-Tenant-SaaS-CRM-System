@@ -1,4 +1,12 @@
 node_modules
-# Keep environment variables out of version control
+
+# Environment variables
 .env
 !.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker
+.dockerignore
